@@ -1,0 +1,39 @@
+name: OpenChatKit Feedback Report
+description: Details of feedback from using OpenChatKit test app
+title: OpenChatKit Feedback Report
+labels: "feedback report"
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this feedback report!
+  - type: textarea
+    id: my-question
+    attributes:
+      label: "My question:"
+    validations:
+      required: true
+  - type: textarea
+    id: bot-response
+    attributes:
+      label: "Bot response:"
+    validations:
+      required: true
+  - type: textarea
+    id: ideal-bot-response
+    attributes:
+      label: "Ideal bot response:"
+    validations:
+      required: true
+  - type: checkboxes
+    id: response-issues
+    attributes:
+      label: "Bot response was:"
+      options:
+        - label: Factually incorrect
+          required: true
+        - label: Not helpful
+          required: true
+        - label: Harmful, inappropriate or unsafe
+          required: true

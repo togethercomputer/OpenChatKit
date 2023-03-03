@@ -1,0 +1,28 @@
+name: OpenChatKit
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge
+  - defaults
+dependencies:
+  - cudatoolkit=11.6.0
+  - cupy=10.4.0
+  - faiss-gpu=1.7.2
+  - fastparquet=0.5.0
+  - nccl=2.12.12.1
+  - pip=22.3.1
+  - pyarrow=8.0.0
+  - python=3.10.9
+  - python-snappy=0.6.1
+  - pytorch=1.13.1
+  - pytorch-cuda=11.6
+  - snappy=1.1.9
+  - torchaudio=0.13.1
+  - torchvision=0.14.1
+  - pip:
+      - datasets==2.10.1
+      - loguru==0.6.0
+      - netifaces==0.11.0
+      - transformers==4.21.1
+      - wandb==0.13.10
+      - zstandard==0.20.0
