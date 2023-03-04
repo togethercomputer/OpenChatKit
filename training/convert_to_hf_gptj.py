@@ -99,7 +99,7 @@ if __name__ == '__main__':
     assert args.ckpt_path is not None
     assert args.save_path is not None
     
-    if not os.path.exists(args.save_dir):
+    if not os.path.exists(args.save_path):
         os.mkdir(args.save_path)
 
     config = AutoConfig.from_pretrained('EleutherAI/gpt-j-6B')
