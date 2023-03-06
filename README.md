@@ -1,1 +1,1 @@
-# OpenChaT
+# OpenChatKit
