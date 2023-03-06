@@ -12,9 +12,9 @@ from pipeline_parallel.dist_pp_utils import get_pp_module
 from transformers import AutoConfig
 import datasets
 
-import wandb
 from utils.dist_args_utils import *
 from utils.dist_checkpoint_utils import *
+from utils.logging_utils import *
 from comm.comm_utils import *
 
 
@@ -51,7 +51,7 @@ def test_loop(args, pipe, device, test_data_loader):
         metric = {"valid.perplexity": ppls.item(), "valid.loss": loss.item()}
         
         print(metric)
-        wandb.log(
+        train_log(
             metric, 
             step=pipe.global_step,
         )
@@ -98,8 +98,8 @@ def train_loop(args, pipe, device, train_data_loader, test_data_loader):
     if get_pipeline_parallel_rank() == 0 and dp_rank == 0:
         
         for i, data in enumerate(train_data_loader):
-            if i < pipe.global_step:
-                continue
+            # if i < pipe.global_step:
+            #     continue
                 
             if use_dp:
                 get_data_parallel_comm().broadcast(stop_flag, 0)

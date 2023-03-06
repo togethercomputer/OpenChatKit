@@ -55,6 +55,8 @@ def add_model_arguments(parser):
 
 
 def add_training_hyper_parameter_arguments(parser):
+    parser.add_argument('--train-log-backend', type=str, default='print', metavar='N',
+                        help='-')
     parser.add_argument('--project-name', type=str, default='test', metavar='N',
                         help='-')
     parser.add_argument('--batch-size', type=int, default=32, metavar='N',
