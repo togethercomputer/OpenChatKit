@@ -14,11 +14,12 @@ pip install transformers==4.21.1
 pip install datasets
 pip install netifaces
 pip install zstandard
-pip install wandb
+pip install loguru
 ```
 
-As we use wandb to manage experiments, we should also configure `wandb` before running the code
+If you want to use wandb to manage experiments, we should install and configure `wandb` before running the code
 ```shell
+pip install wandb
 wandb login
 ```
 
@@ -114,6 +115,7 @@ The following arguments should be carefully set:
 - `--net-interface`: Network interface. Should be consistent with `GLOO_SOCKET_IFNAME` and `NCCL_SOCKET_IFNAME`.
 
 The following arguments can be tuned / changed:
+- `--train-log-backend `: How to log the training info. {print, loguru, wandb}. 
 - `--optimizer`: Optimizer type. {adam, 8bit-adam} (8bit-adam requires `pip install bitsandbytes`)
 - `--load-pretrained-model`: Whether to load model weights. Usually `true`.
 - `--task-name`: The task name or the path of a `jsonl` file. For multi-task training separate task names by `,`. 

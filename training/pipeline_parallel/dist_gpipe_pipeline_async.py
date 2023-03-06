@@ -4,11 +4,11 @@ import torch.nn.functional
 from torch import optim
 from comm.comm_utils import *
 from modules.dist_gpt_pp_module import *
+from utils.logging_utils import *
 from data_parallel.dist_dp_utils import get_dp_module
 from optimizer.optimizer import get_fp16_optimizer
 import os
 import cupy
-import wandb
 from transformers import get_linear_schedule_with_warmup
 
 flag_profile = int(os.environ.get('FLAG_BENCHMARK', '0'))
@@ -177,16 +177,7 @@ class GpipeAsync:
         if do_train:
             if self.pp_rank == self.pipeline_group_size - 1:
 
-                if not hasattr(args, 'project_name'):
-                    import re
-                    args.project_name = "test-" + \
-                        re.sub('[^a-zA-Z0-9 \n\.]', '_', args.task_name)
-
-                wandb.init(
-                    project=args.project_name, 
-                    # entity='pipeline-activation-compression',
-                    config=args,
-                )
+                init_train_logger(args)
 
             if self.pp_rank == self.pipeline_group_size - 1:
                 self.output_micro_batches_grad = None
@@ -520,19 +511,12 @@ class GpipeAsync:
 
         if not flag_profile:
             if self.pp_rank == self.pipeline_group_size - 1:
-                wandb.log(
+                train_log(
                     {
                         'loss': sum(tr_loss)/len(tr_loss),
                         'lr': self.scheduler.get_last_lr()[0],
-                        #                     'scale': self.optimizer.get_loss_scale(), ##todo
                     }, step=self.global_step,
                 )
-                print("logging...")
-                if hasattr(self, 'experiment'):
-                    self.experiment.log_metrics({
-                        'loss': sum(tr_loss)/len(tr_loss),
-                        'lr': self.scheduler.get_last_lr()[0],
-                    }, step=self.global_step)
 
     def profiling_backward_stage(self):
         torch.cuda.synchronize()

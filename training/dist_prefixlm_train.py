@@ -12,9 +12,9 @@ from pipeline_parallel.dist_pp_utils import get_pp_module
 from transformers import AutoConfig
 import datasets
 
-import wandb
 from utils.dist_args_utils import *
 from utils.dist_checkpoint_utils import *
+from utils.logging_utils import *
 from comm.comm_utils import *
 
 
