@@ -27,7 +27,21 @@ python wiki-server.py
 The server will listen on port 7003.  It will download the data sets from ChristophSchuhman.  This
 may take a few minutes.
 
-3. Test the wiki index endpoint on the server.  Works with curl as well.
+3. Test the full retrieval enchanced chatbot
+
+We now demonstrate both the wiki index and the GPT-NeoX-fine-tuned model.
+
+```curl -X POST -H 'Content-Type: application/json' http://127.0.0.1:7003/inference -d '{ "prompt" : "where is zurich located?" }'```
+
+Internally we first query the wiki index and generate a response using the provided model.  To do
+this, We concatenate the retrieved information and the users' query into a prompt, 
+encode it with a tokenizer, and generate a response using the chatbot model.
+
+The response should indicate the location of Zurich city.
+
+
+4. To test just the retrieval functionality of the system you can can do the folowing.  Curl works
+as well.
 
 ```python
 import requests
@@ -44,18 +58,5 @@ print(res.json())
 
 This should print the most relevant sentences about Zurich from Wikipedia. By increasing w and 
 decreasing w_th, we can retrieve a longer context.
-
-
-4. Test the chatbot
-
-We now demonstrate both the wiki index and the GPT-NeoX-fine-tuned model.
-
-```curl -X POST -H 'Content-Type: application/json' http://127.0.0.1:7003/inference -d '{ "prompt" : "where is zurich located?" }'```
-
-Internally we first query the wiki index and generate a response using the provided model.  To do
-this, We concatenate the retrieved information and the users' query into a prompt, 
-encode it with a tokenizer, and generate a response using the chatbot model.
-
-The response should indicate the location of Zurich city.
 
 
