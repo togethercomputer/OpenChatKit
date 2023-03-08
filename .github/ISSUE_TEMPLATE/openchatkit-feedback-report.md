@@ -2,7 +2,7 @@
 name: OpenChatKit Feedback Report
 about: Details of feedback from using OpenChatKit test app
 title: ''
-labels: ''
+labels: feedback report
 assignees: ''
 
 ---
