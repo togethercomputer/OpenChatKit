@@ -31,15 +31,37 @@ We highly recommend using Miniconda to isolate your environment.
 conda create -f environment.yml
 ```
 
+# Pre-trained Weights
+
 # Datasets
 
 Download from [Better-OIG-Together/data](https://github.com/togethercomputer/Better-OIG-Together/tree/main/data).
+
+```shell
+python data/OIG-40M/prepare.py
+```
+
+This command downloads the data from Huggingface and puts it in the `data/OIG-40M` directory.
+
+## PRIVATE ONLY
+
+```shell
+python data/duboce-support/prepare.py
+```
+
+The only difference is that the data, because of its large size, might end up on S3 at the end instead of downloading locally.
 
 # Pretrained Base Model
 
 ## GPT-NeoX-20B
 
-Alternatively, you can convert HF models yourself:
+```shell
+python pretrained/GPT-NeoX-20B/prepare.py
+```
+
+This will download the model from Huggingface and convert it to the right format.
+
+OPTIONAL: Alternatively, you can convert HF models yourself:
 
 ```shell
 python convert_from_hf_gptj.py --model-name EleutherAI/gpt-j-6B --save-dir pretrained_models
@@ -103,7 +125,7 @@ The following arguments usually do not change:
 - `--dp-mode`: {allreduce}.
 - `--fp16`: Flag to enable FP16 mixed precision training. Should always adding it for the current impl.
 - `--pp-mode`: always `gpipe`
-- `--profiling`: {no-profiling, tidy_profiling}. `tidy_profiling` will generate profile jsons.
+- `--profiling`: {no-profiling, tidy\_profiling}. `tidy_profiling` will generate profile jsons.
 
 # Training and Finetuning
 
@@ -115,7 +137,15 @@ The following arguments usually do not change:
 pip install bitsandbytes # optional, to use 8bit-adam
 ```
 
-## An Example of GPT-NeoX-20B
+## Train GPT-NeoX-Chat-Base-20B
+
+```shell
+bash training/train-gpt-neox-chat-base-20b.sh
+```
+
+This command places the model checkpoints in the `model_ckpt` directory.
+
+TODO: create the ckpt directories ahead of time.
 
 Please refer to `example_scripts/finetune_gptneox.sh`, which shows an example to fine-tune GPT-NeoX-20B.
 
@@ -124,7 +154,7 @@ The script will launch 8 processes with a pipeline parallel degree of 8 and a da
 In case of geo-distributed training, please first make sure the network interface is correctly set and the master (rank 0 worker) IP and port are accesible by all the workers.
 After that, run the corresponding process on each GPU node.
 
-# Publishing Weights to Huggingface
+# Converting Weights to Huggingface Format
 
 Here are some examples to convert training ckpts to HF ckpts.
 
@@ -135,14 +165,24 @@ python convert_to_hf_gptj.py --ckpt-path model_checkpoints/gptj-test/2000 --save
 
 And NeoX
 ```shell
-python convert_to_hf_gptneox.py --ckpt-path model_checkpoints/gptneox-test/2000 --save-path GPT-NeoX-fine-tuned --n-stages 8 --n-layer-per-stage 6
+python convert_to_hf_gptneox.py --ckpt-path model_checkpoints/gptneox-test/2000 --save-path /huggingface_models/GPT-NeoX-fine-tuned --n-stages 8 --n-layer-per-stage 6
 ```
 
 # Inference
 
+```shell
+python inference/bot.py
+```
+
+to get the REPL and start chatting with the model. By default the script will load the model named GPT-neox-chat-base-20B model under `model-ckpt` but you can override that behavior by specifying `--model` to the script.
+
 Then use HF's `from_pretrained()` to load the model and do inference.
 
 # Evaluation
+
+```shell
+python evaluation/eval.py
+```
 
 # Monitoring
 ## Weights & Biases
@@ -152,6 +192,25 @@ wandb login
 ```
 
 # Retrieval Augmented Models
+
+The code in `/retrieval` implements a python package to load a FAISS index and query it in memory (no web service).
+
+Run
+
+```shell
+python data/wikipedia-blahblah/prepare.py
+```
+
+to download the wikipedia data and build into a FAISS index.
+
+Run
+
+```shell
+python inference/bot.py --retrieval <index_path>
+```
+
+to enable retrieval mode.
+
 
 # License
 
