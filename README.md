@@ -144,8 +144,6 @@ Then use HF's `from_pretrained()` to load the model and do inference.
 
 # Evaluation
 
-# Exporting to Hugging Face
-
 # Monitoring
 ## Weights & Biases
 
