@@ -252,6 +252,4 @@ For full terms, see the LICENSE file. If you have any questions, comments, or co
 
 # Acknowledgements
 
-* Hazy Research
-* CRFM for evaluation
-* Eleuther AI for the base model
+Our model is a fine-tuned version of [gpt-neox-20b](https://huggingface.co/EleutherAI/gpt-neox-20b), a large language model trained by [Eleuther AI](https://www.eleuther.ai). We evaluated our model on [HELM](https://crfm.stanford.edu/helm/latest/) provided by the [Center for Research on Foundation Models](https://crfm.stanford.edu). And we collaborated with both [CRFM](https://crfm.stanford.edu) and [HazyResearch](http://hazyresearch.stanford.edu) at Stanford to build this model.
