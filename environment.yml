@@ -13,6 +13,7 @@ dependencies:
   - pip=22.3.1
   - pyarrow=8.0.0
   - python=3.10.9
+  - python-snappy=0.6.1
   - pytorch=1.13.1
   - pytorch-cuda=11.6
   - snappy=1.1.9
