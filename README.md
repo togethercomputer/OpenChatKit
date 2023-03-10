@@ -143,16 +143,13 @@ After that, run the corresponding process on each GPU node.
 
 # Converting Weights to Huggingface Format
 
-Here are some examples to convert training ckpts to HF ckpts.
-
-For GPT-J:
 ```shell
-python convert_to_hf_gptj.py --ckpt-path model_checkpoints/gptj-test/2000 --save-path GPT-J-fine-tuned --n-stages 2 --n-layer-per-stage 14
-```
-
-And NeoX
-```shell
-python convert_to_hf_gptneox.py --ckpt-path model_checkpoints/gptneox-test/2000 --save-path /huggingface_models/GPT-NeoX-fine-tuned --n-stages 8 --n-layer-per-stage 6
+mkdir huggingface_models \
+  && python training/convert_to_hf_gptneox.py \
+       --ckpt-path model_ckpts/GPT-Neo-XT-Chat-Base-20B/checkpoint_5 
+       --save-path /huggingface_models/GPT-NeoXT-Chat-Base-20B 
+       --n-stages 8 
+       --n-layer-per-stage 6
 ```
 
 # Inference
