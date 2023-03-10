@@ -195,14 +195,14 @@ To use Weights & Biases, first login with your Weights & Biases token.
 wandb login
 ```
 
-# Retrieval Augmented Models
+# Retrieval-Augmented Models
 
 The code in `/retrieval` implements a python package to load a FAISS index and query it in memory (no web service).
 
 Run
 
 ```shell
-python data/wikipedia-blahblah/prepare.py
+python data/wikipedia-3sentence-level-retrieval-index/prepare.py
 ```
 
 to download the wikipedia data and build into a FAISS index.
