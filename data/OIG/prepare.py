@@ -1,4 +1,7 @@
+import glob
+import gzip
 import os
+import shutil
 import subprocess
 
 DIR = os.path.dirname(os.path.abspath(__file__))
@@ -17,3 +20,11 @@ process = subprocess.run(
     shell=True,
     check=True
 )
+
+for f in glob.glob(f"{DIR}/files/*.gz"):
+    out_path, _ = os.path.splitext(f)
+    with (
+        gzip.open(f, 'rb') as infile, 
+        open(out_path, 'wb') as outfile
+    ):
+        shutil.copyfileobj(infile, outfile)
