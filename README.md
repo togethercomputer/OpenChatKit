@@ -58,14 +58,6 @@ python pretrained/GPT-NeoX-20B/prepare.py
 
 This will download the model from Huggingface and convert it to the right format.
 
-OPTIONAL: Alternatively, you can convert HF models yourself:
-
-```shell
-python convert_from_hf_gptj.py --model-name EleutherAI/gpt-j-6B --save-dir pretrained_models
-# or
-python convert_from_hf_gptneox.py --model-name EleutherAI/gpt-neox-20b --save-dir pretrained_models
-```
-
 # Configuration
 
 And set them to `--task-name` with sampling weights, e.g.:
@@ -141,8 +133,6 @@ bash training/train-gpt-neox-chat-base-20b.sh
 ```
 
 This command places the model checkpoints in the `model_ckpt` directory.
-
-TODO: create the ckpt directories ahead of time.
 
 Please refer to `example_scripts/finetune_gptneox.sh`, which shows an example to fine-tune GPT-NeoX-20B.
 
