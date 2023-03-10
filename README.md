@@ -158,15 +158,21 @@ mkdir huggingface_models \
 python inference/bot.py
 ```
 
-to get the REPL and start chatting with the model. By default the script will load the model named GPT-neox-chat-base-20B model under `model-ckpt` but you can override that behavior by specifying `--model` to the script.
-
-Then use HF's `from_pretrained()` to load the model and do inference.
-
-# Evaluation
+to get the REPL and start chatting with the model. By default the script will load the model named GPT-NeoXT-Chat-Base-20B model under `model_ckpt` but you can override that behavior by specifying `--model` to the script.
 
 ```shell
-python evaluation/eval.py
+$ python inference/bot.py 
+Loading /home/csris/src/github.com/togethercomputer/OpenChatKit/inference/../huggingface_models/GPT-NeoXT-Chat-Base-20B to cuda:1...
+Welcome to OpenChatKit shell.   Type /help or /? to list commands.
+
+>>> Hello.
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+Hello human.
+
+>>> 
 ```
+
+`ctrl-c` exits.
 
 # Monitoring
 ## Weights & Biases
