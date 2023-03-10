@@ -5,16 +5,16 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - cudatoolkit=11.6.0=hecad31d_10
-  - cupy=10.4.0=py310h9216885_0
-  - faiss-gpu=1.7.2=h788eb59_3
-  - nccl=2.12.12.1=h0800d71_0
-  - pip=22.3.1=py310h06a4308_0
-  - python=3.10.9=h7a1cb2a_1
-  - pytorch=1.13.1=py3.10_cuda11.6_cudnn8.3.2_0
-  - pytorch-cuda=11.6=h867d48c_1
-  - torchaudio=0.13.1=py310_cu116
-  - torchvision=0.14.1=py310_cu116
+  - cudatoolkit=11.6.0
+  - cupy=10.4.0
+  - faiss-gpu=1.7.2
+  - nccl=2.12.12.1
+  - pip=22.3.1
+  - python=3.10.9
+  - pytorch=1.13.1
+  - pytorch-cuda=11.6
+  - torchaudio=0.13.1
+  - torchvision=0.14.1
   - pip:
       - datasets==2.10.1
       - loguru==0.6.0
