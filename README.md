@@ -4,8 +4,6 @@ OpenChatKit provides a powerful, open-source base to create both specialized and
 
 # Contents
 
-- [OpenChatKit](#openchatkit)
-- [Contents](#contents)
 - [Requirements](#requirements)
 - [Pre-trained Weights](#pre-trained-weights)
 - [Datasets](#datasets)
