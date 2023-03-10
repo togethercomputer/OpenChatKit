@@ -145,11 +145,11 @@ After that, run the corresponding process on each GPU node.
 
 ```shell
 mkdir huggingface_models \
-  && python training/convert_to_hf_gptneox.py \
-       --ckpt-path model_ckpts/GPT-Neo-XT-Chat-Base-20B/checkpoint_5 
-       --save-path /huggingface_models/GPT-NeoXT-Chat-Base-20B 
-       --n-stages 8 
-       --n-layer-per-stage 6
+&& python tools/convert_to_hf_gptneox.py \
+     --ckpt-path model_ckpts/GPT-Neo-XT-Chat-Base-20B/checkpoint_5 
+     --save-path /huggingface_models/GPT-NeoXT-Chat-Base-20B 
+     --n-stages 8 
+     --n-layer-per-stage 6
 ```
 
 # Inference
