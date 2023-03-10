@@ -132,3 +132,6 @@ dmypy.json
 data/OIG-moderation/files/
 data/OIG/files/
 pretrained/GPT-NeoX-20B/EleutherAI_gpt-neox-20b/
+
+# ignore training output
+training/wandb/
