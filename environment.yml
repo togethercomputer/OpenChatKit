@@ -16,6 +16,7 @@ dependencies:
   - torchvision=0.14.1=py310_cu116
   - pip:
       - datasets==2.10.1
+      - loguru==0.6.0
       - netifaces==0.11.0
       - transformers==4.21.1
       - wandb==0.13.10
