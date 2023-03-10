@@ -1,18 +1,16 @@
-import retrieval.wikipedia as wp
-import conversation as convo
-import torch
-from transformers import AutoTokenizer, AutoModelForCausalLM
-import argparse
-import cmd
 import os
-import readline
 import sys
+import cmd
+import torch
+import argparse
+import conversation as convo
+import retrieval.wikipedia as wp
+from transformers import AutoTokenizer, AutoModelForCausalLM
 
 INFERENCE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # TODO: PYTHONPATH hacks are never a good idea. clean this up later
 sys.path.append(os.path.join(INFERENCE_DIR, '..'))
-
 
 class ChatModel:
     human_id = "<human>"
