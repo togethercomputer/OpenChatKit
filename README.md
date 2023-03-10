@@ -36,23 +36,17 @@ conda create -f environment.yml
 
 # Pre-trained Weights
 
+We are making pre-trained weights for this model available at on Huggingface as `togethercomputer/GPT-NeoXT-Chat-Base-20B`.
+
 # Datasets
 
-Download from [Better-OIG-Together/data](https://github.com/togethercomputer/Better-OIG-Together/tree/main/data).
-
 ```shell
-python data/OIG-40M/prepare.py
+python data/OIG/prepare.py
 ```
 
 This command downloads the data from Huggingface and puts it in the `data/OIG-40M` directory.
 
-## PRIVATE ONLY
-
-```shell
-python data/duboce-support/prepare.py
-```
-
-The only difference is that the data, because of its large size, might end up on S3 at the end instead of downloading locally.
+## Data Contributions
 
 # Pretrained Base Model
 
