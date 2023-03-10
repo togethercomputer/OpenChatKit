@@ -7,6 +7,7 @@ channels:
 dependencies:
   - cudatoolkit=11.6.0=hecad31d_10
   - cupy=10.4.0=py310h9216885_0
+  - faiss-gpu=1.7.2=h788eb59_3
   - nccl=2.12.12.1=h0800d71_0
   - pip=22.3.1=py310h06a4308_0
   - python=3.10.9=h7a1cb2a_1
