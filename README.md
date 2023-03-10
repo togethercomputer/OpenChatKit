@@ -11,17 +11,15 @@ OpenChatKit provides a powerful, open-source base to create both specialized and
 - [Datasets](#datasets)
   * [Data Contributions](#data-contributions)
 - [Pretrained Base Model](#pretrained-base-model)
-  * [GPT-NeoX-20B](#gpt-neox-20b)
-- [Configuration](#configuration)
-  * [Arguments](#arguments)
 - [Training and Finetuning](#training-and-finetuning)
   * [(Optional) 8bit Adam](#optional-8bit-adam)
   * [Train GPT-NeoX-Chat-Base-20B](#train-gpt-neox-chat-base-20b)
 - [Converting Weights to Huggingface Format](#converting-weights-to-huggingface-format)
 - [Inference](#inference)
 - [Monitoring](#monitoring)
+  * [Loguru](#loguru)
   * [Weights & Biases](#weights--biases)
-- [Retrieval Augmented Models](#retrieval-augmented-models)
+- [Retrieval-Augmented Models](#retrieval-augmented-models)
 - [License](#license)
 - [Citing OpenChatKit](#citing-openchatkit)
 - [Acknowledgements](#acknowledgements)
@@ -40,81 +38,27 @@ We are making pre-trained weights for this model available at on Huggingface as 
 
 # Datasets
 
+The chat model was trained on the OIG dataset built by LAION, Together, and Ontocord. First download the dataset from Huggingface by the command below from the root of the repo.
+
 ```shell
 python data/OIG/prepare.py
 ```
 
-This command downloads the data from Huggingface and puts it in the `data/OIG-40M` directory.
+Once the command completes, the data will be in the `data/OIG/files` directory.
 
 ## Data Contributions
 
+Help us make this chat model better by contributing data! See the [OpenDataHub](https://github.com/togethercomputer/OpenDataHub) repo for more details.
+
 # Pretrained Base Model
 
-## GPT-NeoX-20B
+The OpenChatKit model is a fine-tuned variant of GPT-NeoX-20B from Eleuther AI. Download the model and convert it to the right format by running this command from the root of the repo.
 
 ```shell
 python pretrained/GPT-NeoX-20B/prepare.py
 ```
 
-This will download the model from Huggingface and convert it to the right format.
-
-# Configuration
-
-And set them to `--task-name` with sampling weights, e.g.:
-```
---task-name \
-{{PATH_TO_DATA_0}}:0.2,\
-{{PATH_TO_DATA_1}}:0.2,\
-{{PATH_TO_DATA_2}}:0.3,\
-{{PATH_TO_DATA_3}}:0.3
-```
-
-The path of unzipped model should be passed to `--model-name` and `--tokenizer-name` for fine-tuning.
-
-## Arguments
-
-Enviroment vars that should be set:
-```bash
-export GLOO_SOCKET_IFNAME=lo # this interface should be consistent to `--net-interface`
-export NCCL_SOCKET_IFNAME=lo # this interface should be consistent to `--net-interface`
-export WANDB_NAME=gptj-test # wandb run name
-```
-
-The following arguments should be carefully set:
-- `--model-name`: The path of model ckpt sharded by layers.
-- `--tokenizer-name`: Usually the same to `--model-name`. You can also use HF's model name.
-- `--model-type`: Indicate the model type. {gptj}. More model types will be added soon.
-- `--num-layers`: Number of Transformer layers **for each GPU**. E.g. GPT-J has 28 layers, if we use two GPUs to form a pipeline, `--num-layers` should be 14.
-- `--embedding-dim`: The hidden size of the model. GPT-J-6B is 4096. This is used to create buffers.
-- `--dist-url`: URL of rank 0 worker (master). It is the same to all workers. And this URL should be accessible by all workers. For local training (single machine multiple GPUs), this can be like `--dist-url tcp://127.0.0.1:7033`
-- `--world-size`: The total number of workers. `world-size == pipeline-group-size * data-group-size`
-- `--pipeline-group-size`: Number of GPU workers for each pipeline
-- `--data-group-size`: Number of data parallel workers. Also the number of pipelines.
-- `--net-interface`: Network interface. Should be consistent with `GLOO_SOCKET_IFNAME` and `NCCL_SOCKET_IFNAME`.
-
-The following arguments can be tuned / changed:
-- `--train-log-backend `: How to log the training info. {print, loguru, wandb}. 
-- `--optimizer`: Optimizer type. {adam, 8bit-adam} (8bit-adam requires `pip install bitsandbytes`)
-- `--load-pretrained-model`: Whether to load model weights. Usually `true`.
-- `--task-name`: The task name or the path of a `jsonl` file. For multi-task training separate task names by `,`. 
-   There is an optional sampling weight after each task name, separated by `:` (default is 1.0). Sampling weights will be normalized. 
-   E.g. it should be like `--task-name cot:0.1,/path_task0.jsonl:1.0,/path_task0.jsonl:1.0,/path_task0.jsonl:1.0`.
-- `--checkpoint-path`: Path to save fine-tuned checkpoints.
-- `--checkpoint-steps`: Save ckpt every `checkpoint-steps`.
-- `--total-steps`: Total number of steps for training. (This counts all `gradient-accumulate-step`s.)
-- `--warmup-steps`: LR warmup steps.
-- `--lr`: learning rate
-- `--seq-length`: sequence length
-- `--batch-size`: batch size for each GPU device (of each gradient accumulation step).
-- `--micro-batch-size`: micro batch size for pipeline parallelism. 1 works fine.
-- `--gradient-accumulate-step`: Accumulate gradients for several steps before updating parameters. This is another way to achieve large batch sizes when GPU memory is not enough.
-
-The following arguments usually do not change:
-- `--dp-backend`: {nccl, gloo}, default nccl.
-- `--dp-mode`: {allreduce}.
-- `--fp16`: Flag to enable FP16 mixed precision training. Should always adding it for the current impl.
-- `--pp-mode`: always `gpipe`
-- `--profiling`: {no-profiling, tidy\_profiling}. `tidy_profiling` will generate profile jsons.
+The weights for this model will be in the `pretrained/GPT-NeoX-20B/EleutherAI_gpt-neox-20b`.
 
 # Training and Finetuning
 
@@ -128,20 +72,20 @@ pip install bitsandbytes # optional, to use 8bit-adam
 
 ## Train GPT-NeoX-Chat-Base-20B
 
+After downloading the dataset and the base model, run the training loop.
+
 ```shell
 bash training/train-gpt-neox-chat-base-20b.sh
 ```
-
-This command places the model checkpoints in the `model_ckpt` directory.
-
-Please refer to `example_scripts/finetune_gptneox.sh`, which shows an example to fine-tune GPT-NeoX-20B.
-
 The script will launch 8 processes with a pipeline parallel degree of 8 and a data parallel degree of 1.
 
-In case of geo-distributed training, please first make sure the network interface is correctly set and the master (rank 0 worker) IP and port are accesible by all the workers.
-After that, run the corresponding process on each GPU node.
+As the training loop runs, checkpoints are saved to the `model_ckpt` directory.
+
+Please see [the training README](training/README.md) for more details about customizing the training run.
 
 # Converting Weights to Huggingface Format
+
+Before you can use this model to perform inference, it must be converted to the Hugginface format.
 
 ```shell
 mkdir huggingface_models \
@@ -154,11 +98,15 @@ mkdir huggingface_models \
 
 # Inference
 
+To help test the model, we provide a simple test command line test harness to interact with the bot. 
+
 ```shell
 python inference/bot.py
 ```
 
-to get the REPL and start chatting with the model. By default the script will load the model named GPT-NeoXT-Chat-Base-20B model under `model_ckpt` but you can override that behavior by specifying `--model` to the script.
+By default the script will load the model named GPT-NeoXT-Chat-Base-20B model under `huggingface_models` but you can override that behavior by specifying `--model`.
+
+Once the model has loaded, enter text at the prompt and the model will reply.
 
 ```shell
 $ python inference/bot.py 
@@ -172,20 +120,15 @@ Hello human.
 >>> 
 ```
 
-`ctrl-c` exits.
+Commands are prefixed with a `/`, and the `/quit` command exits.
 
 # Monitoring
 
-
-```
-Default is --train-log-backend print which simply print the loss.
-Set --train-log-backend wandb to re-enable it.
-Another option is --train-log-backend loguru, which logs to ./logs/file_{time}.log
-```
-
-The training code uses [loguru](https://github.com/Delgan/loguru) by default, but can be configured to report results to Weights & Biases.
+By default, the training script simply prints the loss as training proceeds, but it can also output metrics to a file using [loguru](https://github.com/Delgan/loguru) or report them to Weights & Biases.
 
 ## Loguru
+
+Another option is `--train-log-backend loguru`, which logs to `./logs/file_{time}.log`
 
 ## Weights & Biases
 
@@ -195,30 +138,44 @@ To use Weights & Biases, first login with your Weights & Biases token.
 wandb login
 ```
 
+Set `--train-log-backend wandb` in the training script to enable logging to Weights & Biases.
+
 # Retrieval-Augmented Models
 
-The code in `/retrieval` implements a python package to load a FAISS index and query it in memory (no web service).
+The code in `/retrieval` implements a python package that loads a FAISS index of Wikipedia and provides a function to query. The following steps explain how to use this index to augment the queries to the bot with context from the retriever.
 
-Run
+1. Donwload the Wikipedia index.
 
 ```shell
 python data/wikipedia-3sentence-level-retrieval-index/prepare.py
 ```
 
-to download the wikipedia data and build into a FAISS index.
-
-Run
+2. Run the bot with the `--retrieval` flag.
 
 ```shell
-python inference/bot.py --retrieval <index_path>
+python inference/bot.py --retrieval
 ```
 
-to enable retrieval mode.
+After starting, the bot will load both the chat model and the retrieval index, which takes a long time. Once the model and the index are loaded, all queries will be augmented with extra context.
 
+
+```shell
+$ python inference/bot.py --retrieval
+Loading /OpenChatKit/inference/../huggingface_models/GPT-NeoXT-Chat-Base-20B to cuda:0...
+Loading retrieval index...
+Welcome to OpenChatKit shell.   Type /help or /? to list commands.
+
+>>> Where is Zurich?
+Setting `pad_token_id` to `eos_token_id`:0 for open-end generation.
+Where is Zurich?
+Zurich is located in Switzerland.
+
+>>>
+```
 
 # License
 
-All code in this repository was developed by Together Computer.  Copyright (c) 2023, Together Computer.  All rights reserved. The code is licensed under the Apache 2.0 license.
+All code in this repository was developed by Together Computer except where otherwise noted.  Copyright (c) 2023, Together Computer.  All rights reserved. The code is licensed under the Apache 2.0 license.
 
 
 ```
