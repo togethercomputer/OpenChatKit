@@ -22,7 +22,7 @@ class ChatModel:
 
     def __init__(self, model_name, gpu_id):
         device = torch.device('cuda', gpu_id)
-        self._model = AutoModelForCausalLM.from_pretrained(model_name).half()
+        self._model = AutoModelForCausalLM.from_pretrained(model_name, use_auth_token=True).half()
         self._model.to(device)
         self._tokenizer = AutoTokenizer.from_pretrained(model_name)
 
@@ -36,7 +36,8 @@ class ChatModel:
             max_new_tokens=max_new_tokens, 
             do_sample=do_sample, 
             temperature=temperature, 
-            top_k=top_k
+            top_k=top_k,
+            pad_token_id=self.tokenizer.eos_token_id
         )
         output = self._tokenizer.batch_decode(outputs)[0]
 

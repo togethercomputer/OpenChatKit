@@ -27,7 +27,7 @@ OpenChatKit provides a powerful, open-source base to create both specialized and
 We highly recommend using Miniconda to isolate your environment.
 
 ```shell
-conda create -f environment.yml
+conda env create -f environment.yml
 ```
 
 # Pre-trained Weights
@@ -103,6 +103,12 @@ python inference/bot.py
 ```
 
 By default the script will load the model named GPT-NeoXT-Chat-Base-20B model under `huggingface_models` but you can override that behavior by specifying `--model`.
+
+For example, if you want to load the base model from our Huggingface, repo, you can run the following command which downloads the weights from HuggingFace and then allow you to interact with the bot.
+
+```shell
+python inference/bot.py --model togethercomputer/GPT-NeoXT-Chat-Base-20B
+```
 
 Once the model has loaded, enter text at the prompt and the model will reply.
 
