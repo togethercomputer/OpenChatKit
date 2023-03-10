@@ -11,6 +11,7 @@ dependencies:
   - fastparquet=0.5.0
   - nccl=2.12.12.1
   - pip=22.3.1
+  - pyarrow=8.0.0
   - python=3.10.9
   - pytorch=1.13.1
   - pytorch-cuda=11.6
