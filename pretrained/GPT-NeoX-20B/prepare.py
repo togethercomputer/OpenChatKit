@@ -2,13 +2,15 @@ import os
 import argparse
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, AutoConfig
-# from modules.gpt_modules import GPTEmbeddings, GPTBlock
+
+DIR = os.path.dirname(os.path.abspath(__file__))
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Convert HF checkpoints')
     parser.add_argument('--model-name', type=str, default='EleutherAI/gpt-neox-20b', 
                         help='model-name')
-    parser.add_argument('--save-dir', type=str, default='./pretrained_models', 
+    parser.add_argument('--save-dir', type=str, default=DIR, 
                         help='model-name')
     args = parser.parse_args()
     
