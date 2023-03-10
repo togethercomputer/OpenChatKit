@@ -175,7 +175,12 @@ Hello human.
 `ctrl-c` exits.
 
 # Monitoring
+
+The training code uses [loguru](https://github.com/Delgan/loguru) by default, but can be configured to report results to Weights & Biases.
+
 ## Weights & Biases
+
+To use Weights & Biases, first login with your Weights & Biases token.
 
 ```shell
 wandb login
