@@ -1,10 +1,13 @@
 import cmd
+import os
 import readline
 
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
 
 import conversation as convo
+
+INFERENCE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 class ChatModel:
@@ -42,7 +45,7 @@ class OpenChatKitShell(cmd.Cmd):
     prompt = ">>> "
 
     gpu_id = 1
-    model_name_or_path = 'huggingface_models/GPT-NeoX-fine-tuned'
+    model_name_or_path = f"{INFERENCE_DIR}/../huggingface_models/GPT-NeoX-fine-tuned"
     max_tokens = 128
     sample = True
     temperature = 0.6
