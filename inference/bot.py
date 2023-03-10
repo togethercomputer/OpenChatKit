@@ -45,7 +45,7 @@ class OpenChatKitShell(cmd.Cmd):
     prompt = ">>> "
 
     gpu_id = 1
-    model_name_or_path = f"{INFERENCE_DIR}/../huggingface_models/GPT-NeoX-fine-tuned"
+    model_name_or_path = f"{INFERENCE_DIR}/../huggingface_models/GPT-NeoXT-Chat-Base-20B"
     max_tokens = 128
     sample = True
     temperature = 0.6
