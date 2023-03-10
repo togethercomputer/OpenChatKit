@@ -176,7 +176,16 @@ Hello human.
 
 # Monitoring
 
+
+```
+Default is --train-log-backend print which simply print the loss.
+Set --train-log-backend wandb to re-enable it.
+Another option is --train-log-backend loguru, which logs to ./logs/file_{time}.log
+```
+
 The training code uses [loguru](https://github.com/Delgan/loguru) by default, but can be configured to report results to Weights & Biases.
+
+## Loguru
 
 ## Weights & Biases
 
