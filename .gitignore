@@ -129,9 +129,11 @@ dmypy.json
 .pyre/
 
 # ignore downloaded files
-data/OIG-moderation/files/
-data/OIG/files/
-pretrained/GPT-NeoX-20B/EleutherAI_gpt-neox-20b/
+/data/OIG-moderation/files/
+/data/OIG/files/
+/pretrained/GPT-NeoX-20B/EleutherAI_gpt-neox-20b/
 
 # ignore training output
-training/wandb/
+/model_ckpts/
+/huggingface_models/
+/training/wandb/
