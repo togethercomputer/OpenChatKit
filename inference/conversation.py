@@ -23,6 +23,10 @@ class Conversation:
         self._bot_id = bot_id
         self._prompt = PRE_PROMPT.format(cur_date, cur_time)
 
+    def push_context_turn(self, context):
+        # for now, context is represented as a human turn
+        self._prompt += f"{self._human_id}: {context}\n"
+
     def push_human_turn(self, query):
         self._prompt += f"{self._human_id}: {query}\n"
         self._prompt += f"{self._bot_id}:"
@@ -40,7 +44,7 @@ class Conversation:
     def get_last_turn(self):
         human_tag = f"{self._human_id}:"
         bot_tag = f"{self._bot_id}:"
-        turns = re.split(f"({human_tag}|{bot_tag})\W", self._prompt)
+        turns = re.split(f"({human_tag}|{bot_tag})\W?", self._prompt)
         return turns[-1]
 
     def get_raw_prompt(self):

@@ -1,13 +1,19 @@
+import argparse
 import cmd
 import os
 import readline
+import sys
+
+INFERENCE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# TODO: PYTHONPATH hacks are never a good idea. clean this up later
+sys.path.append(os.path.join(INFERENCE_DIR, '..'))
 
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
 
 import conversation as convo
-
-INFERENCE_DIR = os.path.dirname(os.path.abspath(__file__))
+import retrieval.wikipedia as wp
 
 
 class ChatModel:
@@ -44,17 +50,24 @@ class OpenChatKitShell(cmd.Cmd):
     intro = "Welcome to OpenChatKit shell.   Type /help or /? to list commands.\n"
     prompt = ">>> "
 
-    gpu_id = 1
-    model_name_or_path = f"{INFERENCE_DIR}/../huggingface_models/GPT-NeoXT-Chat-Base-20B"
-    max_tokens = 128
-    sample = True
-    temperature = 0.6
-    top_k = 40
+    def __init__(self, gpu_id, model_name_or_path, max_tokens, sample, temperature, top_k, retrieval):
+        super().__init__()
+        self._gpu_id = gpu_id
+        self._model_name_or_path = model_name_or_path
+        self._max_tokens = max_tokens
+        self._sample = sample
+        self._temperature = temperature
+        self._top_k = top_k
+        self._retrieval = retrieval
 
     def preloop(self):
-        print(f"Loading {self.model_name_or_path} to cuda:{self.gpu_id}...")
+        print(f"Loading {self._model_name_or_path} to cuda:{self._gpu_id}...")
+        self._model = ChatModel(self._model_name_or_path, self._gpu_id)
 
-        self._model = ChatModel(self.model_name_or_path, self.gpu_id)
+        if self._retrieval:
+            print(f"Loading retrieval index...")
+            self._index = wp.WikipediaIndex()
+
         self._convo = convo.Conversation(self._model.human_id, self._model.bot_id)
 
     def precmd(self, line):
@@ -64,14 +77,19 @@ class OpenChatKitShell(cmd.Cmd):
             return 'say ' + line
 
     def do_say(self, arg):
+        if self._retrieval:
+            results = self._index.search(arg)
+            if len(results) > 0:
+                self._convo.push_context_turn(results[0])
+
         self._convo.push_human_turn(arg)
 
         output = self._model.do_inference(
             self._convo.get_raw_prompt(), 
-            self.max_tokens, 
-            self.sample, 
-            self.temperature, 
-            self.top_k
+            self._max_tokens, 
+            self._sample, 
+            self._temperature, 
+            self._top_k
         )
 
         self._convo.push_model_response(output)
@@ -81,10 +99,10 @@ class OpenChatKitShell(cmd.Cmd):
     def do_raw_say(self, arg):
         output = self._model.do_inference(
             arg,
-            self.max_tokens,
-            self.sample,
-            self.temperature,
-            self.top_k
+            self._max_tokens,
+            self._sample,
+            self._temperature,
+            self._top_k
         )
 
         print(output)
@@ -95,9 +113,69 @@ class OpenChatKitShell(cmd.Cmd):
     def do_reset(self, arg):
         self._convo = convo.Conversation(self._model.human_id, self._model.bot_id)
 
+    def do_hyperparameters(self, arg):
+        print(
+            f"Hyperparameters:\n"
+            f"  max_tokens: {self._max_tokens}\n"
+            f"  sample: {self._sample}\n"
+            f"  temperature: {self._temperature}\n"
+            f"  top_k: {self._top_k}"
+        )
+
     def do_quit(self, arg):
         return True
 
+def main():
+    parser = argparse.ArgumentParser(description='test harness for OpenChatKit')
+    parser.add_argument(
+	'--gpu-id', 
+	default=0, 
+	help='the ID of the GPU to run on'
+    )
+    parser.add_argument(
+	'--model', 
+	default=f"{INFERENCE_DIR}/../huggingface_models/GPT-NeoXT-Chat-Base-20B", 
+	help='the ID of the GPU to run on'
+    )
+    parser.add_argument(
+	'--max-tokens', 
+	default=128, 
+	help='the maximum number of tokens to generate'
+    )
+    parser.add_argument(
+	'--sample', 
+	default=True, 
+	action='store_true',
+	help='indicates whether to sample'
+    )
+    parser.add_argument(
+	'--temperature', 
+	default=0.6, 
+	help='temperature for the LM'
+    )
+    parser.add_argument(
+	'--top-k', 
+	default=40, 
+	help='top-k for the LM'
+    )
+    parser.add_argument(
+	'--retrieval', 
+	default=False, 
+	action='store_true',
+	help='augment queries with context from the retrieval index'
+    )
+    args = parser.parse_args()
+
+    OpenChatKitShell(
+        args.gpu_id,
+        args.model,
+        args.max_tokens,
+        args.sample,
+        args.temperature,
+        args.top_k,
+        args.retrieval
+    ).cmdloop()
+
 
 if __name__ == '__main__':
-    OpenChatKitShell().cmdloop()
+    main()
