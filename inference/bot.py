@@ -135,7 +135,7 @@ def main():
 
     parser.add_argument(
         '--gpu-id',
-        default=os.environ.get('CUDA_VISIBLE_DEVICES', 0),
+        default=0,
         help='the ID of the GPU to run on'
     )
     parser.add_argument(
