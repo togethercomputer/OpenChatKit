@@ -131,6 +131,7 @@ dmypy.json
 # ignore downloaded files
 /data/OIG-moderation/files/
 /data/OIG/files/
+/data/wikipedia-3sentence-level-retrieval-index/files/
 /pretrained/GPT-NeoX-20B/EleutherAI_gpt-neox-20b/
 
 # ignore training output
