@@ -167,7 +167,7 @@ And set `--train-log-backend wandb` in the training script to enable logging to 
 
 The code in `/retrieval` implements a python package for querying a Faiss index of Wikipedia. The following steps explain how to use this index to augment queries in the test harness with context from the retriever.
 
-1. Donwload the Wikipedia index.
+1. Download the Wikipedia index.
 
 ```shell
 python data/wikipedia-3sentence-level-retrieval-index/prepare.py
