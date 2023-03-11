@@ -1,3 +1,8 @@
+# This file was adapted from ChristophSchuhmann/wikipedia-3sentence-level-retrieval-index:
+#   https://huggingface.co/datasets/ChristophSchuhmann/wikipedia-3sentence-level-retrieval-index/blob/main/wikiindexquery.py
+#
+# The original file was licensed under the Apache 2.0 license.
+
 import os
 
 from transformers import AutoTokenizer, AutoModel
