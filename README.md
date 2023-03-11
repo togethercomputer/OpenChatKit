@@ -1,6 +1,6 @@
 # OpenChatKit
 
-OpenChatKit provides a powerful, open-source base to create both specialized and general purpose chatbots for various applications. The kit includes an instruction-tuned 20 billion parameter language model, a 6 billion parameter moderation model, and an extensible retrieval system for including up-to-date responses from custom repositories. It was trained on the OIG-43M training dataset, which was a collaboration between Together, LAION, and Ontocord. Much more than a model release, this is the beginning of an open source project. We are releasing a set of tools and processes for ongoing improvement with community contributions. 
+OpenChatKit provides a powerful, open-source base to create both specialized and general purpose chatbots for various applications. The kit includes an instruction-tuned 20 billion parameter language model, a 6 billion parameter moderation model, and an extensible retrieval system for including up-to-date responses from custom repositories. It was trained on the OIG-43M training dataset, which was a collaboration between [Together](https://www.together.xyz/), [LAION](https://laion.ai), and [Ontocord.ai](https://ontocord.ai). Much more than a model release, this is the beginning of an open source project. We are releasing a set of tools and processes for ongoing improvement with community contributions. 
 
 In this repo, you'll find code for:
 - Training an OpenChatKit model
@@ -22,7 +22,7 @@ In this repo, you'll find code for:
 - [Monitoring](#monitoring)
   * [Loguru](#loguru)
   * [Weights & Biases](#weights--biases)
-- [Retrieval-Augmented Models](#retrieval-augmented-models)
+- [Experimental: Retrieval-Augmented Models](#experimental-retrieval-augmented-models)
 - [License](#license)
 - [Citing OpenChatKit](#citing-openchatkit)
 - [Acknowledgements](#acknowledgements)
@@ -52,7 +52,7 @@ More details can be found on the model card for [GPT-NeoXT-Chat-Base-20B](https:
 
 # Datasets
 
-The chat model was trained on the [OIG](https://huggingface.co/datasets/laion/OIG) dataset built by LAION, Together, and Ontocord. To download the dataset from Huggingface run the command below from the root of the repo.
+The chat model was trained on the [OIG](https://huggingface.co/datasets/laion/OIG) dataset built by [LAION](https://laion.ai/), [Together](https://www.together.xyz/), and [Ontocord.ai](https://www.ontocord.ai/). To download the dataset from Huggingface run the command below from the root of the repo.
 
 ```shell
 python data/OIG/prepare.py
@@ -161,11 +161,13 @@ wandb login
 
 And set `--train-log-backend wandb` in the training script to enable logging to Weights & Biases.
 
-# Retrieval-Augmented Models
+# Experimental: Retrieval-Augmented Models
+
+*Note: Retrieval is still experimental.*
 
 The code in `/retrieval` implements a python package for querying a Faiss index of Wikipedia. The following steps explain how to use this index to augment queries in the test harness with context from the retriever.
 
-1. Donwload the Wikipedia index.
+1. Download the Wikipedia index.
 
 ```shell
 python data/wikipedia-3sentence-level-retrieval-index/prepare.py
@@ -235,3 +237,5 @@ For full terms, see the LICENSE file. If you have any questions, comments, or co
 # Acknowledgements
 
 Our model is a fine-tuned version of [gpt-neox-20b](https://huggingface.co/EleutherAI/gpt-neox-20b), a large language model trained by [Eleuther AI](https://www.eleuther.ai). We evaluated our model on [HELM](https://crfm.stanford.edu/helm/latest/) provided by the [Center for Research on Foundation Models](https://crfm.stanford.edu). And we collaborated with both [CRFM](https://crfm.stanford.edu) and [HazyResearch](http://hazyresearch.stanford.edu) at Stanford to build this model.
+
+We collaborated with [LAION](https://laion.ai/) and [Ontocord.ai](https://www.ontocord.ai/) to build the training data used to fine tune this model.
