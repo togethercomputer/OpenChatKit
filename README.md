@@ -22,7 +22,7 @@ In this repo, you'll find code for:
 - [Monitoring](#monitoring)
   * [Loguru](#loguru)
   * [Weights & Biases](#weights--biases)
-- [Retrieval-Augmented Models](#retrieval-augmented-models)
+- [Experimental: Retrieval-Augmented Models](#experimental-retrieval-augmented-models)
 - [License](#license)
 - [Citing OpenChatKit](#citing-openchatkit)
 - [Acknowledgements](#acknowledgements)
@@ -161,7 +161,9 @@ wandb login
 
 And set `--train-log-backend wandb` in the training script to enable logging to Weights & Biases.
 
-# Retrieval-Augmented Models
+# Experimental: Retrieval-Augmented Models
+
+*Note: Retrieval is still experimental.*
 
 The code in `/retrieval` implements a python package for querying a Faiss index of Wikipedia. The following steps explain how to use this index to augment queries in the test harness with context from the retriever.
 
