@@ -52,4 +52,5 @@ class Conversation:
 
     @classmethod
     def from_raw_prompt(cls, value):
-        self._prompt = value
+        cls._prompt = value
+
