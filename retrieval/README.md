@@ -14,7 +14,7 @@ To get started, we need to install some dependencies and download the Wikipedia 
 
 Install the necessary dependencies, including `torch`, `transformers`, `flask`, `faiss`, and `fastparquet`.
 
-1. Open up wiki-server.py and set model_name_or_path to point to the path that conatins the chat
+1. Open up wiki-server.py and set model_name_or_path to point to the path that contains the chat
 model
 
 
@@ -27,7 +27,7 @@ python wiki-server.py
 The server will listen on port 7003.  It will download the data sets from ChristophSchuhman.  This
 may take a few minutes.
 
-3. Test the full retrieval enchanced chatbot
+3. Test the full retrieval enhanced chatbot
 
 We now demonstrate both the wiki index and the GPT-NeoX-fine-tuned model.
 
@@ -40,7 +40,7 @@ encode it with a tokenizer, and generate a response using the chatbot model.
 The response should indicate the location of Zurich city.
 
 
-4. To test just the retrieval functionality of the system you can can do the folowing.  Curl works
+4. To test just the retrieval functionality of the system you can can do the following.  Curl works
 as well.
 
 ```python
