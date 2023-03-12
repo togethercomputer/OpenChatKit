@@ -11,7 +11,7 @@ from transformers.modeling_utils import no_init_weights
 import os
 
 
-def create_emtpy_gptneox(config):
+def create_empty_gptneox(config):
 
     import torch
     import torch.nn as nn
@@ -106,7 +106,7 @@ if __name__ == '__main__':
 
     config = AutoConfig.from_pretrained('EleutherAI/gpt-neox-20b')
     tokenizer = AutoTokenizer.from_pretrained('EleutherAI/gpt-neox-20b')
-    model = create_emtpy_gptneox(config)
+    model = create_empty_gptneox(config)
     load_decentralized_checkpoint(
         model, args.ckpt_path, n_stages=args.n_stages, n_layer_per_stage=args.n_layer_per_stage,
     )
