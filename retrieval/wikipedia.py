@@ -20,7 +20,7 @@ def mean_pooling(token_embeddings, mask):
 
 def cos_sim_2d(x, y):
     norm_x = x / np.linalg.norm(x, axis=1, keepdims=True)
-    norm_y = y / np.linalg.norm(x, axis=1, keepdims=True)
+    norm_y = y / np.linalg.norm(y, axis=1, keepdims=True)
     return np.matmul(norm_x, norm_y.T)
 
 
