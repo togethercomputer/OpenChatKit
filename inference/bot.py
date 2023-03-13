@@ -20,9 +20,9 @@ class ChatModel:
     def __init__(self, model_name, gpu_id):
         device = torch.device('cuda', gpu_id)
         self._model = AutoModelForCausalLM.from_pretrained(
-            model_name, use_auth_token=True).half()
+            model_name).half()
         self._model.to(device)
-        self._tokenizer = AutoTokenizer.from_pretrained(model_name,use_auth_token=True)
+        self._tokenizer = AutoTokenizer.from_pretrained(model_name)
 
     def do_inference(self, prompt, max_new_tokens, do_sample, temperature, top_k):
         inputs = (
