@@ -6,7 +6,7 @@ To customize training, make a copy of the script and modify the arguments.
 
 ## Arguments
 
-Enviroment vars that should be set:
+Environment vars that should be set:
 ```bash
 export GLOO_SOCKET_IFNAME=lo # this interface should be consistent to `--net-interface`
 export NCCL_SOCKET_IFNAME=lo # this interface should be consistent to `--net-interface`
