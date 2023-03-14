@@ -21,10 +21,8 @@ process = subprocess.run(
     check=True
 )
 
+# Extract .gz files in OIG dataset
 for f in glob.glob(f"{DIR}/files/*.gz"):
     out_path, _ = os.path.splitext(f)
-    with (
-        gzip.open(f, 'rb') as infile, 
-        open(out_path, 'wb') as outfile
-    ):
+    with gzip.open(f, 'rb') as infile, open(out_path, 'wb') as outfile:
         shutil.copyfileobj(infile, outfile)
