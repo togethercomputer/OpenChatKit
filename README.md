@@ -43,6 +43,23 @@ This repo also uses [Git LFS](https://git-lfs.com/) to manage some files. Instal
 ```shell
 git lfs install
 ```
+### If you want to run the pacakge using Docker:
+
+Build the Docker image using the following command:
+```shell
+docker build -t openchatkit .
+```
+Run the Docker container using the following command:
+```shell
+docker run -it openchatkit
+```
+This will start a new bash shell in the container.
+Activate the OpenChatKit environment by running the following command:
+```shell
+conda activate OpenChatKit
+```
+
+
 
 # Pre-trained Weights
 
