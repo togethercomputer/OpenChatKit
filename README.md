@@ -47,6 +47,12 @@ git lfs install
 conda env create -f environment.yml
 ```
 
+5. Activate the new conda environment.
+
+```shell
+conda activate OpenChatKit
+```
+
 # Pre-trained Weights
 
 GPT-NeoXT-Chat-Base-20B is a 20B-parameter variant of GPT-NeoX, fine-tuned on conversational datasets. We are releasing pre-trained weights for this model as [togethercomputer/GPT-NeoXT-Chat-Base-20B](https://huggingface.co/togethercomputer/GPT-NeoXT-Chat-Base-20B) on Huggingface.
