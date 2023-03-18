@@ -41,13 +41,19 @@ Before you begin, you need to install PyTorch and other dependencies.
 git lfs install
 ```
 
-4. Create an environment called OpenChatKit using the `environment.yml` file at the root of this repo.
+4. Install mamba in the `base` environment so it's available in all environments.
 
 ```shell
-conda env create -f environment.yml
+conda install mamba -n base -c conda-forge
 ```
 
-5. Activate the new conda environment.
+5. Create an environment called OpenChatKit using the `environment.yml` file at the root of this repo.
+
+```shell
+mamba env create -f environment.yml 
+```
+
+6. Activate the new conda environment.
 
 ```shell
 conda activate OpenChatKit
