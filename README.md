@@ -32,16 +32,19 @@ In this repo, you'll find code for:
 Before you begin, you need to install PyTorch and other dependencies.
 
 1. Install [Miniconda](https://docs.conda.io/en/latest/miniconda.html) from their website.
-2. Create an environment called OpenChatKit using the `environment.yml` file at the root of this repo.
 
-```shell
-conda env create -f environment.yml
-```
+2. Install [Git LFS](https://git-lfs.com/) from their website.
 
-This repo also uses [Git LFS](https://git-lfs.com/) to manage some files. Install it using the instructions on their site then run:
+3. Install the `git lfs` hooks.
 
 ```shell
 git lfs install
+```
+
+4. Create an environment called OpenChatKit using the `environment.yml` file at the root of this repo.
+
+```shell
+conda env create -f environment.yml
 ```
 
 # Pre-trained Weights
