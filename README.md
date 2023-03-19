@@ -115,16 +115,18 @@ Please see [the training README](training/README.md) for more details about cust
 
 # Converting Weights to Huggingface Format
 
-Before you can use this model to perform inference, it must be converted to the Hugginface format.
+Before you can use this model to perform inference, it must be converted to the Huggingface format. Run this command from the root of the repo to do so.
 
 ```shell
-mkdir huggingface_models \
-&& python tools/convert_to_hf_gptneox.py \
-     --ckpt-path model_ckpts/GPT-Neo-XT-Chat-Base-20B/checkpoint_5 
-     --save-path /huggingface_models/GPT-NeoXT-Chat-Base-20B 
-     --n-stages 8 
-     --n-layer-per-stage 6
+mkdir huggingface_models \ 
+  && python tools/convert_to_hf_gptneox.py \ 
+       --ckpt-path model_ckpts/GPT-Neo-XT-Chat-Base-20B/checkpoint_100  \
+       --save-path huggingface_models/GPT-NeoXT-Chat-Base-20B  \
+       --n-stages 8  \
+       --n-layer-per-stage 6
 ```
+
+Make sure to replace `model_ckpts/GPT-Neo-XT-Chat-Base-20B/checkpoint_100` with the latest checkpoint in the `model_ckpts/GPT-Neo-XT-Chat-Base-20B` directory.
 
 # Inference
 
