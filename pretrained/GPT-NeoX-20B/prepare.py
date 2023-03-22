@@ -12,6 +12,8 @@ if __name__ == '__main__':
                         help='model-name')
     parser.add_argument('--save-dir', type=str, default=DIR, 
                         help='model-name')
+    parser.add_argument('--offload-dir', type=str, default=None,
+                        help='directory to offload from memory')
     args = parser.parse_args()
     
     if not os.path.exists(args.save_dir):
@@ -24,7 +26,14 @@ if __name__ == '__main__':
     config.save_pretrained(save_path)
     tokenizer = AutoTokenizer.from_pretrained(args.model_name)
     tokenizer.save_pretrained(save_path)
-    model = AutoModelForCausalLM.from_pretrained(args.model_name, torch_dtype=torch.float16)
+
+    # offload model from memory to disk if offload-dir is specified
+    if args.offload_dir is not None:
+        if not os.path.exists(args.offload_dir):
+            os.mkdir(args.offload_dir)
+        model = AutoModelForCausalLM.from_pretrained(args.model_name, torch_dtype=torch.float16, device_map="auto", offload_folder=args.offload_dir)
+    else:
+        model = AutoModelForCausalLM.from_pretrained(args.model_name, torch_dtype=torch.float16)
     
     item = {}
     item['embed_in.weight'] = model.gpt_neox.embed_in.weight
