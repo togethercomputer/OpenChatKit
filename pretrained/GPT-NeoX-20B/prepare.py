@@ -20,21 +20,29 @@ if __name__ == '__main__':
     if not os.path.exists(save_path):
         os.mkdir(save_path)
     
+    print('loading model from HF...')
     config = AutoConfig.from_pretrained(args.model_name)
     config.save_pretrained(save_path)
     tokenizer = AutoTokenizer.from_pretrained(args.model_name)
     tokenizer.save_pretrained(save_path)
     model = AutoModelForCausalLM.from_pretrained(args.model_name, torch_dtype=torch.float16)
+    print('loaded model from HF...')
     
+    print('converting the embedding layer...')
     item = {}
     item['embed_in.weight'] = model.gpt_neox.embed_in.weight
     torch.save(item, os.path.join(save_path, 'pytorch_embs.pt'))
+    print('converted the embedding layer.')
 
     for i in range(len(model.gpt_neox.layers)):
+        print(f'converting the {i}-th transformer layer...')
         torch.save(model.gpt_neox.layers[i].state_dict(), os.path.join(save_path, f'pytorch_{i}.pt'))
+        print(f'converted the {i}-th transformer layer.')
     
+    print('converting the lm_head layer...')
     item = {}
     item['embed_out.weight'] = model.embed_out.weight
     item['final_layer_norm.weight'] = model.gpt_neox.final_layer_norm.weight
     item['final_layer_norm.bias'] = model.gpt_neox.final_layer_norm.bias
     torch.save(item, os.path.join(save_path, 'pytorch_lm_head.pt'))
+    print('converted the lm_head layer.')
