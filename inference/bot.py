@@ -20,7 +20,7 @@ class ChatModel:
     def __init__(self, model_name, gpu_id):
         device = torch.device('cuda', gpu_id)
         self._model = AutoModelForCausalLM.from_pretrained(
-            model_name).half()
+            model_name, torch_dtype=torch.float16, device_map="auto").half()
         self._model.to(device)
         self._tokenizer = AutoTokenizer.from_pretrained(model_name)
 
