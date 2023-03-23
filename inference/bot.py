@@ -17,14 +17,10 @@ class ChatModel:
     human_id = "<human>"
     bot_id = "<bot>"
 
-    def __init__(self, model_name, gpu_id, offload_dir=None):
+    def __init__(self, model_name, gpu_id):
         device = torch.device('cuda', gpu_id)
-
-        if offload_dir is None:
-            self._model = AutoModelForCausalLM.from_pretrained(model_name).half()
-        else:
-            self._model = AutoModelForCausalLM.from_pretrained(model_name, device_map="auto",
-                                                               offload_folder=offload_dir).half()
+        self._model = AutoModelForCausalLM.from_pretrained(
+            model_name).half()
         self._model.to(device)
         self._tokenizer = AutoTokenizer.from_pretrained(model_name)
 
