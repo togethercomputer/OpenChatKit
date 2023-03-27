@@ -40,7 +40,7 @@ How it works: The model fills up the max available vRAM on the first device pass
 
 **Decrease MAX_vRAM if you run into CUDA OOM. This happens because each input takes up additional space on the device.**
 
-**NOTE: Total MAX_vRAM across all devices must be > size of the model in GB. If not, you'll need to offload parts of the model to CPU: [refer to this section on running on consumer hardware](#running-on-consumer-hardware).**
+**NOTE: Total MAX_vRAM across all devices must be > size of the model in GB. If not, `bot.py` automatically offloads the rest of the model to RAM and disk. It will use up all available RAM. To allocate a specified amount of RAM: [refer to this section on running on consumer hardware](#running-on-consumer-hardware).**
 
 ## Running on specific GPUs
 If you have multiple GPUs but would only like to use a specific device(s), [use the same steps as in this section on running on multiple devices](#running-on-multiple-gpus) and only specify the devices you'd like to use. 
@@ -58,7 +58,9 @@ If you have multiple GPUs, each <48 GB vRAM, [the steps mentioned in this sectio
 - <48 GB vRAM combined across multiple GPUs
 - Running into Out-Of-Memory (OOM) issues
 
-In which case, add the flag `-r CPU_RAM` where CPU_RAM is the maximum amount of RAM you'd like to allocate to loading model. Note: This significantly reduces inference speeds.
+In which case, add the flag `-r CPU_RAM` where CPU_RAM is the maximum amount of RAM you'd like to allocate to loading model. Note: This significantly reduces inference speeds. 
+
+The model will load without specifying `-r`, however, it is not recommended because it will allocate all available RAM to the model. To limit how much RAM the model can use, add `-r`.
 
 If the total vRAM + CPU_RAM < the size of the model in GiB, the rest of the model will be offloaded to a folder "offload" at the root of the directory. Note: This significantly reduces inference speeds.
 
