@@ -170,7 +170,7 @@ def main():
     parser.add_argument(
         '--model',
         default=f"{INFERENCE_DIR}/../huggingface_models/GPT-NeoXT-Chat-Base-20B",
-        help='the ID of the GPU to run on'
+        help='name/path of the model'
     )
     parser.add_argument(
         '--max-tokens',
@@ -203,7 +203,7 @@ def main():
         '-g',
         '--gpu-vram',
         action='store',
-        help='Max vRAM to allocate per GPU',
+        help='max vRAM to allocate per GPU',
         nargs='+',
         required=False,
     )
@@ -212,7 +212,7 @@ def main():
         '--cpu-ram',
         default=None,
         type=int,
-        help='Max CPU RAM to allocate',
+        help='max CPU RAM to allocate',
         required=False
     )
     args = parser.parse_args()
