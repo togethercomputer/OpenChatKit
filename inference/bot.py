@@ -17,12 +17,26 @@ class ChatModel:
     human_id = "<human>"
     bot_id = "<bot>"
 
-    def __init__(self, model_name, gpu_id):
-        device = torch.device('cuda', gpu_id)
-        self._model = AutoModelForCausalLM.from_pretrained(
-            model_name).half()
-        self._model.to(device)
-        self._tokenizer = AutoTokenizer.from_pretrained(model_name)
+    def __init__(self, model_name, cpu, gpu_id, use_int8):
+        # TODO: remove use_auth_token=True when models are released.
+        if cpu:
+            device = torch.device('cpu')
+            if use_int8:
+                print(f"Warning: int8 inference is not supported on CPU (use bfp16 instead). Please check:"
+                      f"https://huggingface.co/blog/hf-bitsandbytes-integration#cpu-support.")
+            self._model = AutoModelForCausalLM.from_pretrained(
+                model_name, torch_dtype=torch.bfloat16, use_auth_token=True)
+            self._model.to(device)
+        else:
+            device = torch.device('cuda', gpu_id)
+            if use_int8:
+                self._model = AutoModelForCausalLM.from_pretrained(
+                    model_name, device_map='auto', load_in_8bit=True, use_auth_token=True)
+            else:
+                self._model = AutoModelForCausalLM.from_pretrained(
+                    model_name, use_auth_token=True).half()
+                self._model.to(device)
+        self._tokenizer = AutoTokenizer.from_pretrained(model_name, use_auth_token=True)
 
     def do_inference(self, prompt, max_new_tokens, do_sample, temperature, top_k):
         inputs = (
@@ -49,10 +63,15 @@ class OpenChatKitShell(cmd.Cmd):
     intro = "Welcome to OpenChatKit shell.   Type /help or /? to list commands.\n"
     prompt = ">>> "
 
-    def __init__(self, gpu_id, model_name_or_path, max_tokens, sample, temperature, top_k, retrieval):
+    def __init__(self, cpu, gpu_id, model_name_or_path, int8, max_tokens, sample, temperature, top_k, retrieval):
         super().__init__()
-        self._gpu_id = int(gpu_id)
+        self._cpu = cpu
+        if self._cpu:
+            self._gpu_id = -1
+        else:
+            self._gpu_id = int(gpu_id)
         self._model_name_or_path = model_name_or_path
+        self._use_int8 = int8
         self._max_tokens = max_tokens
         self._sample = sample
         self._temperature = temperature
@@ -60,8 +79,11 @@ class OpenChatKitShell(cmd.Cmd):
         self._retrieval = retrieval
 
     def preloop(self):
-        print(f"Loading {self._model_name_or_path} to cuda:{self._gpu_id}...")
-        self._model = ChatModel(self._model_name_or_path, self._gpu_id)
+        if self._cpu:
+            print(f"Loading {self._model_name_or_path} to cpu...")
+        else:
+            print(f"Loading {self._model_name_or_path} to cuda:{self._gpu_id}...")
+        self._model = ChatModel(self._model_name_or_path, self._cpu, self._gpu_id, self._use_int8)
 
         if self._retrieval:
             print(f"Loading retrieval index...")
@@ -137,6 +159,18 @@ def main():
         help='the ID of the GPU to run on'
     )
     parser.add_argument(
+        '--cpu',
+        default=False,
+        action='store_true',
+        help='indicates whether to use CPU for inference instead of GPU',
+    )
+    parser.add_argument(
+        '--int8',
+        default=False,
+        action='store_true',
+        help='indicates whether to use int8 for inference instead of fp16',
+    )
+    parser.add_argument(
         '--model',
         default=f"{INFERENCE_DIR}/../huggingface_models/GPT-NeoXT-Chat-Base-20B",
         help='the ID of the GPU to run on'
@@ -171,8 +205,10 @@ def main():
     args = parser.parse_args()
 
     OpenChatKitShell(
+        args.cpu,
         args.gpu_id,
         args.model,
+        args.int8,
         args.max_tokens,
         args.sample,
         args.temperature,
