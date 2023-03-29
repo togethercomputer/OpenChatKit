@@ -56,13 +56,14 @@ def load_decentralized_checkpoint(model, checkpoint_path, n_stages=2, n_layer_pe
 
         elif i == n_stages - 1:
             for j in range(n_layer_per_stage):
-                if i*n_layer_per_stage + j == 44:
-                    break
                 _tmp = {k[len(f"{j}."):]:v for k,v in checkpoint.items() if k.startswith(f"{j}.")}
                 if len(_tmp) == 0:
                     break
                 # torch.save(_tmp, os.path.join(output_path, f'pytorch_{i*n_layer_per_stage + j}.pt'))
                 model.gpt_neox.layers[i*n_layer_per_stage + j].load_state_dict(_tmp)
+                if i*n_layer_per_stage + j == len(model.gpt_neox.layers) - 1:
+                    j += 1
+                    break
 
             _tmp = {k[len(f"{j}."):]:v for k,v in checkpoint.items() if k.startswith(f"{j}.")}
             if len(_tmp) == 0:
@@ -88,14 +89,17 @@ def load_decentralized_checkpoint(model, checkpoint_path, n_stages=2, n_layer_pe
 if __name__ == '__main__':
     
     parser = argparse.ArgumentParser(description='Convert HF checkpoints')
+    parser.add_argument('--config-name', type=str, default='EleutherAI/gpt-neox-20b',
+                        help='config-name')
     parser.add_argument('--ckpt-path', type=str, default=None, 
-                        help='model-name')
+                        help='ckpt-path')
     parser.add_argument('--save-path', type=str, default=None, 
-                        help='model-name')
+                        help='save-path')
     parser.add_argument('--n-stages', type=int, default=8, 
                         help='pipeline group size')
     parser.add_argument('--n-layer-per-stage', type=int, default=6, 
                         help='n layers per GPU device')
+    parser.add_argument('--fp16', default=False, action='store_true')
     args = parser.parse_args()
     
     assert args.ckpt_path is not None
@@ -104,13 +108,26 @@ if __name__ == '__main__':
     if not os.path.exists(args.save_path):
         os.mkdir(args.save_path)
 
-    config = AutoConfig.from_pretrained('EleutherAI/gpt-neox-20b')
-    tokenizer = AutoTokenizer.from_pretrained('EleutherAI/gpt-neox-20b')
+    print('loading config...')
+    config = AutoConfig.from_pretrained(args.config_name)
+    print('loaded config.')
+    print('loading tokenizer...')
+    tokenizer = AutoTokenizer.from_pretrained(args.config_name)
+    print('loaded tokenizer.')
+    print('creating empty model...')
     model = create_empty_gptneox(config)
+    if args.fp16:
+        model = model.half()
+    print('created empty model.')
+    print('loading model ckpt...')
     load_decentralized_checkpoint(
         model, args.ckpt_path, n_stages=args.n_stages, n_layer_per_stage=args.n_layer_per_stage,
     )
+    print('loaded model ckpt.')
     
+    print('saving HF model...')
     model.save_pretrained(args.save_path)
+    print(f'saved HF model to `{args.save_path}`')
     config.save_pretrained(args.save_path)
     tokenizer.save_pretrained(args.save_path)
+    
