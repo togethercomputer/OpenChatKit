@@ -89,6 +89,15 @@ python pretrained/GPT-NeoX-20B/prepare.py
 
 The weights for this model will be in the `pretrained/GPT-NeoX-20B/EleutherAI_gpt-neox-20b`.
 
+In case you want to fine-tune other gpt-neox models, e.g. [the Pythia model suite](https://huggingface.co/models?sort=downloads&search=pythia), you can specify the HF model name, for example:
+
+```shell
+python pretrained/GPT-NeoX-20B/prepare.py --model-name EleutherAI/pythia-6.9b-deduped
+```
+
+And the weights for this model will be in the `pretrained/GPT-NeoX-20B/EleutherAI_pythia-6.9b-deduped`.
+
+
 # Training and Finetuning
 
 ## (Optional) 8bit Adam
@@ -113,20 +122,37 @@ As the training loop runs, checkpoints are saved to the `model_ckpts` directory 
 
 Please see [the training README](training/README.md) for more details about customizing the training run.
 
+The `training/finetune_Pythia-Chat-Base-7B.sh` script is another example to fine-tune a 7B pythia (gpt-neox) model. The script launches 8 processes with a pipeline-parallel degree of 4 and a data-parallel degree of 2.
+
 # Converting Weights to Huggingface Format
 
 Before you can use this model to perform inference, it must be converted to the Huggingface format. Run this command from the root of the repo to do so.
 
 ```shell
-mkdir huggingface_models \ 
-  && python tools/convert_to_hf_gptneox.py \ 
+mkdir huggingface_models \
+  && python tools/convert_to_hf_gptneox.py \
        --ckpt-path model_ckpts/GPT-Neo-XT-Chat-Base-20B/checkpoint_100  \
        --save-path huggingface_models/GPT-NeoXT-Chat-Base-20B  \
        --n-stages 8  \
-       --n-layer-per-stage 6
+       --n-layer-per-stage 6 \
+       --fp16
 ```
+where the `--fp16` flag will load and store models in fp16.
 
 Make sure to replace `model_ckpts/GPT-Neo-XT-Chat-Base-20B/checkpoint_100` with the latest checkpoint in the `model_ckpts/GPT-Neo-XT-Chat-Base-20B` directory.
+
+If you need to convert ckpts of other gpt-neox variants, make sure to specify the correct config name for your variant.
+For example, if you want to convert a checkpoint fine-tuned from `EleutherAI/pythia-6.9b-deduped`, you should indicate this as a config name:
+```shell
+python tools/convert_to_hf_gptneox.py \
+    --config-name EleutherAI/pythia-6.9b-deduped \
+    --ckpt-path model_ckpts/Pythia-Chat-Base-7B/checkpoint_100 \
+    --save-path huggingface_models/Pythia-Chat-Base-7B \
+    --n-stages 4 \
+    --n-layer-per-stage 8 \
+    --fp16
+```
+
 
 # Inference
 
