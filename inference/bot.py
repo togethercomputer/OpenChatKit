@@ -22,13 +22,13 @@ class ChatModel:
     def __init__(self, model_name, gpu_id, max_memory):
         device = torch.device('cuda', gpu_id)   # TODO: allow sending to cpu
 
-        # recommended default for devices with > 40 GB vRAM
+        # recommended default for devices with > 40 GB VRAM
         # load model onto one device
         if max_memory is None:
             self._model = AutoModelForCausalLM.from_pretrained(
                 model_name, torch_dtype=torch.float16, device_map="auto")
             self._model.to(device)
-        # load the model with the given max_memory config (for devices with insufficient vRAM or multi-gpu)
+        # load the model with the given max_memory config (for devices with insufficient VRAM or multi-gpu)
         else:
             config = AutoConfig.from_pretrained(model_name)
             # load empty weights
@@ -203,7 +203,7 @@ def main():
         '-g',
         '--gpu-vram',
         action='store',
-        help='max vRAM to allocate per GPU',
+        help='max VRAM to allocate per GPU',
         nargs='+',
         required=False,
     )
