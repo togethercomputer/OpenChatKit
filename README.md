@@ -186,6 +186,8 @@ Hello human.
 
 Commands are prefixed with a `/`, and the `/quit` command exits.
 
+Please see [the inference README](inference/README.md) for more details about arguments, running on multiple/specific GPUs, and running on consumer hardware.
+
 # Monitoring
 
 By default, the training script simply prints the loss as training proceeds, but it can also output metrics to a file using [loguru](https://github.com/Delgan/loguru) or report them to Weights & Biases.

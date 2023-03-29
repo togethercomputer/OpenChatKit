@@ -11,17 +11,47 @@ import torch
 import argparse
 import conversation as convo
 import retrieval.wikipedia as wp
-from transformers import AutoTokenizer, AutoModelForCausalLM
+from transformers import AutoTokenizer, AutoModelForCausalLM, AutoConfig
+from accelerate import infer_auto_device_map, init_empty_weights
+
 
 class ChatModel:
     human_id = "<human>"
     bot_id = "<bot>"
 
-    def __init__(self, model_name, gpu_id):
-        device = torch.device('cuda', gpu_id)
-        self._model = AutoModelForCausalLM.from_pretrained(
-            model_name).half()
-        self._model.to(device)
+    def __init__(self, model_name, gpu_id, max_memory):
+        device = torch.device('cuda', gpu_id)   # TODO: allow sending to cpu
+
+        # recommended default for devices with > 40 GB VRAM
+        # load model onto one device
+        if max_memory is None:
+            self._model = AutoModelForCausalLM.from_pretrained(
+                model_name, torch_dtype=torch.float16, device_map="auto")
+            self._model.to(device)
+        # load the model with the given max_memory config (for devices with insufficient VRAM or multi-gpu)
+        else:
+            config = AutoConfig.from_pretrained(model_name)
+            # load empty weights
+            with init_empty_weights():
+                model_from_conf = AutoModelForCausalLM.from_config(config)
+
+            model_from_conf.tie_weights()
+
+            # create a device_map from max_memory
+            device_map = infer_auto_device_map(
+                model_from_conf,
+                max_memory=max_memory,
+                no_split_module_classes=["GPTNeoXLayer"],
+                dtype="float16"
+            )
+            # load the model with the above device_map
+            self._model = AutoModelForCausalLM.from_pretrained(
+                model_name,
+                device_map=device_map,
+                offload_folder="offload",  # optional offload-to-disk overflow directory (auto-created)
+                offload_state_dict=True,
+                torch_dtype=torch.float16
+            )
         self._tokenizer = AutoTokenizer.from_pretrained(model_name)
 
     def do_inference(self, prompt, max_new_tokens, do_sample, temperature, top_k):
@@ -49,7 +79,7 @@ class OpenChatKitShell(cmd.Cmd):
     intro = "Welcome to OpenChatKit shell.   Type /help or /? to list commands.\n"
     prompt = ">>> "
 
-    def __init__(self, gpu_id, model_name_or_path, max_tokens, sample, temperature, top_k, retrieval):
+    def __init__(self, gpu_id, model_name_or_path, max_tokens, sample, temperature, top_k, retrieval, max_memory):
         super().__init__()
         self._gpu_id = int(gpu_id)
         self._model_name_or_path = model_name_or_path
@@ -58,10 +88,11 @@ class OpenChatKitShell(cmd.Cmd):
         self._temperature = temperature
         self._top_k = top_k
         self._retrieval = retrieval
+        self._max_memory = max_memory
 
     def preloop(self):
         print(f"Loading {self._model_name_or_path} to cuda:{self._gpu_id}...")
-        self._model = ChatModel(self._model_name_or_path, self._gpu_id)
+        self._model = ChatModel(self._model_name_or_path, self._gpu_id, self._max_memory)
 
         if self._retrieval:
             print(f"Loading retrieval index...")
@@ -139,7 +170,7 @@ def main():
     parser.add_argument(
         '--model',
         default=f"{INFERENCE_DIR}/../huggingface_models/GPT-NeoXT-Chat-Base-20B",
-        help='the ID of the GPU to run on'
+        help='name/path of the model'
     )
     parser.add_argument(
         '--max-tokens',
@@ -168,7 +199,36 @@ def main():
         action='store_true',
         help='augment queries with context from the retrieval index'
     )
+    parser.add_argument(
+        '-g',
+        '--gpu-vram',
+        action='store',
+        help='max VRAM to allocate per GPU',
+        nargs='+',
+        required=False,
+    )
+    parser.add_argument(
+        '-r',
+        '--cpu-ram',
+        default=None,
+        type=int,
+        help='max CPU RAM to allocate',
+        required=False
+    )
     args = parser.parse_args()
+
+    # set max_memory dictionary if given
+    if args.gpu_vram is None:
+        max_memory = None
+    else:
+        max_memory = {}
+        for i in range(len(args.gpu_vram)):
+            # assign CUDA ID as label and XGiB as value
+            max_memory[int(args.gpu_vram[i].split(':')[0])] = f"{args.gpu_vram[i].split(':')[1]}GiB"
+
+        if args.cpu_ram is not None:
+            # add cpu to max-memory if given
+            max_memory['cpu'] = f"{int(args.cpu_ram)}GiB"
 
     OpenChatKitShell(
         args.gpu_id,
@@ -177,7 +237,8 @@ def main():
         args.sample,
         args.temperature,
         args.top_k,
-        args.retrieval
+        args.retrieval,
+        max_memory
     ).cmdloop()
 
 
