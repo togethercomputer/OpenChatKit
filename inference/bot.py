@@ -48,14 +48,14 @@ class ChatModel:
     human_id = "<human>"
     bot_id = "<bot>"
 
-    def __init__(self, model_name, gpu_id, max_memory):
+    def __init__(self, model_name, gpu_id, max_memory, use_token):
         device = torch.device('cuda', gpu_id)   # TODO: allow sending to cpu
 
         # recommended default for devices with > 40 GB VRAM
         # load model onto one device
         if max_memory is None:
             self._model = AutoModelForCausalLM.from_pretrained(
-                model_name, torch_dtype=torch.float16, device_map="auto")
+                model_name, torch_dtype=torch.float16, device_map="auto", use_auth_token=use_token)
             self._model.to(device)
         # load the model with the given max_memory config (for devices with insufficient VRAM or multi-gpu)
         else:
@@ -79,7 +79,8 @@ class ChatModel:
                 device_map=device_map,
                 offload_folder="offload",  # optional offload-to-disk overflow directory (auto-created)
                 offload_state_dict=True,
-                torch_dtype=torch.float16
+                torch_dtype=torch.float16,
+                use_auth_token=use_token
             )
         self._tokenizer = AutoTokenizer.from_pretrained(model_name)
 
@@ -110,7 +111,19 @@ class OpenChatKitShell(cmd.Cmd):
     intro = "Welcome to OpenChatKit shell.   Type /help or /? to list commands.\n"
     prompt = ">>> "
 
-    def __init__(self, gpu_id, model_name_or_path, max_tokens, sample, temperature, top_k, retrieval, max_memory, do_stream):
+    def __init__(
+        self, 
+        gpu_id, 
+        model_name_or_path, 
+        max_tokens, 
+        sample, 
+        temperature, 
+        top_k, 
+        retrieval, 
+        max_memory, 
+        do_stream,
+        use_token,
+    ):
         super().__init__()
         self._gpu_id = int(gpu_id)
         self._model_name_or_path = model_name_or_path
@@ -121,10 +134,11 @@ class OpenChatKitShell(cmd.Cmd):
         self._retrieval = retrieval
         self._max_memory = max_memory
         self._do_stream = do_stream
+        self._use_token = use_token
 
     def preloop(self):
         print(f"Loading {self._model_name_or_path} to cuda:{self._gpu_id}...")
-        self._model = ChatModel(self._model_name_or_path, self._gpu_id, self._max_memory)
+        self._model = ChatModel(self._model_name_or_path, self._gpu_id, self._max_memory, self._use_token)
 
         if self._retrieval:
             print(f"Loading retrieval index...")
@@ -232,6 +246,11 @@ def main():
         help='top-k for the LM'
     )
     parser.add_argument(
+        '--use-token',
+        action='store_true',
+        help='indicates whether to use a Huggingface auth token when downloading the model'
+    )
+    parser.add_argument(
         '--retrieval',
         default=False,
         action='store_true',
@@ -268,6 +287,9 @@ def main():
             # add cpu to max-memory if given
             max_memory['cpu'] = f"{int(args.cpu_ram)}GiB"
 
+    if 'OCK_USE_AUTH_TOKEN' in os.environ:
+        args.use_token = True
+
     OpenChatKitShell(
         args.gpu_id,
         args.model,
@@ -278,6 +300,7 @@ def main():
         args.retrieval,
         max_memory,
         not args.no_stream,
+        args.use_token
     ).cmdloop()
 
 
