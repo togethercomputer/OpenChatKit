@@ -202,7 +202,7 @@ def main():
     )
     parser.add_argument(
         '--model',
-        default=f"{INFERENCE_DIR}/../huggingface_models/GPT-NeoXT-Chat-Base-20B",
+        default=f"{INFERENCE_DIR}/../huggingface_models/Pythia-Chat-Base-7B",
         help='name/path of the model'
     )
     parser.add_argument(
