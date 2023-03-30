@@ -133,6 +133,7 @@ dmypy.json
 /data/OIG/files/
 /data/wikipedia-3sentence-level-retrieval-index/files/
 /pretrained/GPT-NeoX-20B/EleutherAI_gpt-neox-20b/
+/pretrained/Pythia-6.9B-deduped/EleutherAI_pythia-6.9b-deduped/
 
 # ignore training output
 /model_ckpts/
