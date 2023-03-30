@@ -33,6 +33,7 @@ class StopWordsCriteria(StoppingCriteria):
         if self._stream_callback:
             if first:
                 text = text.lstrip()
+            # buffer tokens if the partial result ends with a prefix of a stop word, e.g. "<hu"
             for stop_word in self._stop_words:
                 for i in range(1, len(stop_word)):
                     if self._partial_result.endswith(stop_word[0:i]):
