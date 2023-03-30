@@ -9,19 +9,21 @@ In this repo, you'll find code for:
 
 # Contents
 
+- [OpenChatKit](#openchatkit)
+- [Contents](#contents)
 - [Requirements](#requirements)
 - [Pre-trained Weights](#pre-trained-weights)
 - [Datasets](#datasets)
-  * [Data Contributions](#data-contributions)
+  - [Data Contributions](#data-contributions)
 - [Pretrained Base Model](#pretrained-base-model)
 - [Training and Finetuning](#training-and-finetuning)
-  * [(Optional) 8bit Adam](#optional-8bit-adam)
-  * [Train GPT-NeoX-Chat-Base-20B](#train-gpt-neox-chat-base-20b)
+  - [(Optional) 8bit Adam](#optional-8bit-adam)
+  - [Train GPT-NeoX-Chat-Base-20B](#train-gpt-neox-chat-base-20b)
 - [Converting Weights to Huggingface Format](#converting-weights-to-huggingface-format)
 - [Inference](#inference)
 - [Monitoring](#monitoring)
-  * [Loguru](#loguru)
-  * [Weights & Biases](#weights--biases)
+  - [Loguru](#loguru)
+  - [Weights \& Biases](#weights--biases)
 - [Experimental: Retrieval-Augmented Models](#experimental-retrieval-augmented-models)
 - [License](#license)
 - [Citing OpenChatKit](#citing-openchatkit)
@@ -122,7 +124,7 @@ As the training loop runs, checkpoints are saved to the `model_ckpts` directory 
 
 Please see [the training README](training/README.md) for more details about customizing the training run.
 
-The `training/finetune_Pythia-Chat-Base-7B.sh` script is another example to fine-tune a 7B pythia (gpt-neox) model. The script launches 8 processes with a pipeline-parallel degree of 4 and a data-parallel degree of 2.
+The `training/finetune_Pythia-Chat-Base-7B.sh` script is another example to fine-tune a 7B pythia (gpt-neox) model. The script launches 8 processes with a pipeline-parallel degree of 8 and a data-parallel degree of 1.
 
 # Converting Weights to Huggingface Format
 

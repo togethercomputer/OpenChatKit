@@ -52,10 +52,10 @@ ARGS="--model-name ${BASE_MODEL} \
 --checkpoint-path ${DIR}/../model_ckpts/${MODEL_NAME} \
 --total-steps 20000 --warmup-steps 10 --train-warmup-steps 0 \
 --checkpoint-steps ${CHECKPOINT_STEPS} \
---lr 1e-5 --seq-length 2048 --batch-size 32 --micro-batch-size 1 --gradient-accumulate-step 1 \
+--lr 1e-5 --seq-length 2048 --batch-size 16 --micro-batch-size 1 --gradient-accumulate-step 4 \
 --dist-url tcp://127.0.0.1:7033 \
---num-layers 8 --embedding-dim 4096 \
---world-size 8 --pipeline-group-size 4 --data-group-size 2 \
+ --num-layers 4 --embedding-dim 4096 \
+--world-size 8 --pipeline-group-size 8 --data-group-size 1 \
 --job-id 0 --net-interface ${netif} \
 --fp16 \
 --dp-backend nccl \
