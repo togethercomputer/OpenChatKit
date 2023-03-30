@@ -3,8 +3,9 @@
 OpenChatKit provides a powerful, open-source base to create both specialized and general purpose chatbots for various applications. The kit includes an instruction-tuned language models, a moderation model, and an extensible retrieval system for including up-to-date responses from custom repositories. OpenChatKit models were trained on the OIG-43M training dataset, which was a collaboration between [Together](https://www.together.xyz/), [LAION](https://laion.ai), and [Ontocord.ai](https://ontocord.ai). 
 
 In this repo, you'll find code for:
-- Training an OpenChatKit model
-- Testing inference using the model
+- Training GPT-NeoXT-Chat-Base-20B, a 20B parameter chat model (see [docs/GPT-NeoXT-Chat-Base-20B.md](docs/GPT-NeoXT-Chat-Base-20B.md))
+- Training Pythia-Chat-Base-7B, a 7B parameter chat model
+- Testing inference using either of the chat models
 - Augmenting the model with additional context from a retrieval index
 
 # Contents
@@ -22,6 +23,7 @@ In this repo, you'll find code for:
   * [Loguru](#loguru)
   * [Weights & Biases](#weights--biases)
 - [Experimental: Retrieval-Augmented Models](#experimental-retrieval-augmented-models)
+- [See Also](#see-also)
 - [License](#license)
 - [Citing OpenChatKit](#citing-openchatkit)
 - [Acknowledgements](#acknowledgements)
@@ -250,6 +252,9 @@ Zurich is located in Switzerland.
 
 >>>
 ```
+
+# See Also
+* [docs/GPT-NeoXT-Chat-Base-20B.md](docs/GPT-NeoXT-Chat-Base-20B.md). OpenChatKit also provides a larger, 20B parameter chat model that was trained on GPT-NeoXT-Chat-Base-20B from Eleuther AI.
 
 # License
 
