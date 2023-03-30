@@ -7,7 +7,7 @@ export MODEL_NAME=Pythia-Chat-Base-7B
 
 export SHOW_DATA=0
 
-BASE_MODEL="${DIR}/../pretrained/GPT-NeoX-20B/EleutherAI_pythia-6.9b-deduped/"
+BASE_MODEL="${DIR}/../pretrained/Pythia-6.9B-deduped/EleutherAI_pythia-6.9b-deduped/"
 
 CHECKPOINT_STEPS=100
 
