@@ -515,6 +515,7 @@ class GpipeAsync:
                     {
                         'loss': sum(tr_loss)/len(tr_loss),
                         'lr': self.scheduler.get_last_lr()[0],
+                        'step': self.global_step,
                     }, step=self.global_step,
                 )
 
