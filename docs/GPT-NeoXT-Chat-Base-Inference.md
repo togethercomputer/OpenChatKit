@@ -1,5 +1,4 @@
-# OpenChatKit Inference
-This directory contains code for OpenChatKit's inference.
+# GPT-NeoXT-Chat-Base-20B Inference
 
 ## Contents
 
@@ -8,11 +7,10 @@ This directory contains code for OpenChatKit's inference.
 - [Running on multiple GPUs](#running-on-multiple-gpus)
 - [Running on specific GPUs](#running-on-specific-gpus)
 - [Running on consumer hardware](#running-on-consumer-hardware)
-- [Running on Google Colab](#running-on-google-colab) 
 
 ## Arguments
 - `--gpu-id`: primary GPU device to load inputs onto for inference. Default: `0`
-- `--model`: name/path of the model. Default = `../huggingface_models/Pythia-Chat-Base-7B`
+- `--model`: name/path of the model. Default = `../huggingface_models/GPT-NeoXT-Chat-Base-20B`
 - `--max-tokens`: the maximum number of tokens to generate. Default: `128`
 - `--sample`: indicates whether to sample. Default: `True`
 - `--temperature`: temperature for the LM. Default: `0.6`
@@ -23,15 +21,13 @@ This directory contains code for OpenChatKit's inference.
 - `--load-in-8bit`: load model in 8-bit. Requires `pip install bitsandbytes`. No effect when used with `-g`. 
 
 ## Hardware requirements for inference
-The Pythia-Chat-Base-7B model requires:
+The GPT-NeoXT-Chat-Base-20B model requires at least 41GB of free VRAM. Used VRAM also goes up by ~100-200 MB per prompt. 
 
-- **18 GB of GPU memory for the base model**
+- A **minimum of 80 GB is recommended** 
 
-- **9 GB of GPU memory for the 8-bit quantized model**
+- A **minimum of 48 GB in VRAM is recommended** for fast responses.
 
-Used VRAM also goes up by ~100-200 MB per prompt. 
-
-If you'd like to run inference on a GPU with less VRAM than the size of the model, refer to this section on [running on consumer hardware](#running-on-consumer-hardware).
+If you'd like to run inference on a GPU with <48 GB VRAM, refer to this section on [running on consumer hardware](#running-on-consumer-hardware).
 
 By default, inference uses only CUDA Device 0.
 
@@ -44,7 +40,7 @@ Add the argument
 
 where IDx is the CUDA ID of the device and MAX_VRAM is the amount of VRAM you'd like to allocate to the device.
 
-For example, if you are running this on 4x 8 GB GPUs and want to distribute the model across all devices, add ```-g 0:4 1:4 2:6 3:6```. In this example, the first two devices get loaded to a max of 4 GiB while the other two are loaded with a max of 6 GiB.
+For example, if you are running this on 4x 48 GB GPUs and want to distribute the model across all devices, add ```-g 0:10 1:12 2:12 3:12 4:12```. In this example, the first device gets loaded to a max of 10 GiB while the others are loaded with a max of 12 GiB.
 
 How it works: The model fills up the max available VRAM on the first device passed and then overflows into the next until the whole model is loaded.
 
@@ -65,9 +61,9 @@ Also, if needed, add the argument `--gpu-id ID` where ID is the CUDA ID of the d
 
 
 ## Running on consumer hardware
-If you have multiple GPUs [the steps mentioned in this section on running on multiple GPUs](#running-on-multiple-gpus) still apply, unless, any of these apply:
-- Running on just 1x GPU with VRAM < size of the model,
-- Less combined VRAM across multiple GPUs than the size of the model,
+If you have multiple GPUs, each <48 GB VRAM, [the steps mentioned in this section on running on multiple GPUs](#running-on-multiple-gpus) still apply, unless, any of these apply:
+- Running on just 1x GPU with <48 GB VRAM,
+- <48 GB VRAM combined across multiple GPUs
 - Running into Out-Of-Memory (OOM) issues
 
 In which case, add the flag `-r CPU_RAM` where CPU_RAM is the maximum amount of RAM you'd like to allocate to loading model. Note: This significantly reduces inference speeds. 
@@ -76,15 +72,8 @@ The model will load without specifying `-r`, however, it is not recommended beca
 
 If the total VRAM + CPU_RAM < the size of the model in GiB, the rest of the model will be offloaded to a folder "offload" at the root of the directory. Note: This significantly reduces inference speeds.
 
-- Example: `-g 0:3 -r 4` will first load up to 3 GiB of the model into the CUDA device 0, then load up to 4 GiB into RAM, and load the rest into the "offload" directory.
+- Example: `-g 0:12 -r 20` will first load up to 12 GiB of the model into the CUDA device 0, then load up to 20 GiB into RAM, and load the rest into the "offload" directory.
 
 How it works: 
 - https://github.com/huggingface/blog/blob/main/accelerate-large-models.md
 - https://www.youtube.com/embed/MWCSGj9jEAo
-
-## Running on Google Colab
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/togethercomputer/OpenChatKit/blob/main/inference/example/example.ipynb)
-
-In the [example notebook](example/example.ipynb), you will find code to run the Pythia-Chat-Base-7B 8-bit quantized model. This is recommended for the free version of Colab. If you'd like to disable quantization, simple remove the `--load-in-8bit` flag from the last cell.
-
-Or, simple click on the "Open In Colab" badge to run the example notebook.

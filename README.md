@@ -10,6 +10,7 @@ In this repo, you'll find code for:
 
 # Contents
 
+- [Try it out](#try-it-out)
 - [Getting Started](#getting-started)
   * [Requirements](#requirements)
   * [Chatting with Pythia-Chat-Base-7B](#chatting-with-pythia-chat-base-7b)
@@ -28,9 +29,16 @@ In this repo, you'll find code for:
 - [Citing OpenChatKit](#citing-openchatkit)
 - [Acknowledgements](#acknowledgements)
 
+# Try it out
+- [OpenChatKit Feedback App](https://huggingface.co/spaces/togethercomputer/OpenChatKit)
+Feedback helps improve the bot and open-source AI research.
+
+- [Run it on Google Colab](inference/README.md#running-on-google-colab) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/togethercomputer/OpenChatKit/blob/main/inference/example/example.ipynb)
+- Continue reading to run it on your own!
+
 # Getting Started
 
-In this tutorial, you will download Pythia-Chat-Base-7B, an instruction-tuned language model, and run some some inference requests against it using a command-line tool.
+In this tutorial, you will download Pythia-Chat-Base-7B, an instruction-tuned language model, and run some inference requests against it using a command-line tool.
 
 Pythia-Chat-Base-7B is a 7B-parameter fine-tuned variant of Pythia-6.9B-deduped from Eleuther AI. Pre-trained weights for this model are available on Huggingface as [togethercomputer/Pythia-Chat-Base-7B](https://huggingface.co/togethercomputer/Pythia-Chat-Base-7B) under an Apache 2.0 license.
 
@@ -73,7 +81,7 @@ conda activate OpenChatKit
 
 ## Chatting with Pythia-Chat-Base-7B
 
-To help you try the model, [`inference/bot.py`](inference/bot.py) is a simple command-line test harness that provides a shell inferface enabling you to chat with the model. Simply enter text at the prompt and the model replies. The test harness also maintains conversation history to provide the model with context.
+To help you try the model, [`inference/bot.py`](inference/bot.py) is a simple command-line test harness that provides a shell interface enabling you to chat with the model. Simply enter text at the prompt and the model replies. The test harness also maintains conversation history to provide the model with context.
 
 
 Start the bot by calling `bot.py` from the root for the repo.

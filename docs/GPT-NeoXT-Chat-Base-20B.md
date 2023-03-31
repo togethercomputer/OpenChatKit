@@ -184,7 +184,7 @@ Hello human.
 
 Commands are prefixed with a `/`, and the `/quit` command exits.
 
-Please see [the inference README](inference/README.md) for more details about arguments, running on multiple/specific GPUs, and running on consumer hardware.
+Please see [the inference README](GPT-NeoXT-Chat-Base-Inference.md) for more details about arguments, running on multiple/specific GPUs, and running on consumer hardware.
 
 # Monitoring
 
