@@ -11,7 +11,7 @@ import torch
 import argparse
 import conversation as convo
 import retrieval.wikipedia as wp
-from transformers import AutoTokenizer, AutoModelForCausalLM, AutoConfig, StoppingCriteria, StoppingCriteriaList
+from transformers import AutoTokenizer, AutoModelForCausalLM, AutoConfig, StoppingCriteria, StoppingCriteriaList, BitsAndBytesConfig
 from accelerate import infer_auto_device_map, init_empty_weights
 
 
@@ -48,16 +48,19 @@ class ChatModel:
     human_id = "<human>"
     bot_id = "<bot>"
 
-    def __init__(self, model_name, gpu_id, max_memory):
+    def __init__(self, model_name, gpu_id, max_memory, load_in_8bit):
         device = torch.device('cuda', gpu_id)   # TODO: allow sending to cpu
+
+        quantization_config = BitsAndBytesConfig(
+            load_in_8bit=load_in_8bit, 
+            llm_int8_enable_fp32_cpu_offload=True,
+        )   # config to load in 8-bit if load_in_8bit
 
         # recommended default for devices with > 40 GB VRAM
         # load model onto one device
         if max_memory is None:
-            self._model = AutoModelForCausalLM.from_pretrained(
-                model_name, torch_dtype=torch.float16, device_map="auto")
-            self._model.to(device)
-        # load the model with the given max_memory config (for devices with insufficient VRAM or multi-gpu)
+            device_map="auto"
+
         else:
             config = AutoConfig.from_pretrained(model_name)
             # load empty weights
@@ -66,21 +69,24 @@ class ChatModel:
 
             model_from_conf.tie_weights()
 
-            # create a device_map from max_memory
+            #create a device_map from max_memory
             device_map = infer_auto_device_map(
                 model_from_conf,
                 max_memory=max_memory,
                 no_split_module_classes=["GPTNeoXLayer"],
-                dtype="float16"
+                dtype="float16",
             )
-            # load the model with the above device_map
-            self._model = AutoModelForCausalLM.from_pretrained(
-                model_name,
-                device_map=device_map,
-                offload_folder="offload",  # optional offload-to-disk overflow directory (auto-created)
-                offload_state_dict=True,
-                torch_dtype=torch.float16
-            )
+
+        self._model = AutoModelForCausalLM.from_pretrained(
+            model_name, 
+            torch_dtype=torch.float16, 
+            device_map=device_map, 
+            offload_folder="offload",
+            quantization_config=quantization_config,
+        )
+        if not load_in_8bit:
+            self._model.to(device)  # not supported by load_in_8bit
+
         self._tokenizer = AutoTokenizer.from_pretrained(model_name)
 
     def do_inference(self, prompt, max_new_tokens, do_sample, temperature, top_k, stream_callback=None):
@@ -110,7 +116,7 @@ class OpenChatKitShell(cmd.Cmd):
     intro = "Welcome to OpenChatKit shell.   Type /help or /? to list commands.\n"
     prompt = ">>> "
 
-    def __init__(self, gpu_id, model_name_or_path, max_tokens, sample, temperature, top_k, retrieval, max_memory, do_stream):
+    def __init__(self, gpu_id, model_name_or_path, max_tokens, sample, temperature, top_k, retrieval, max_memory, do_stream, load_in_8bit):
         super().__init__()
         self._gpu_id = int(gpu_id)
         self._model_name_or_path = model_name_or_path
@@ -121,10 +127,11 @@ class OpenChatKitShell(cmd.Cmd):
         self._retrieval = retrieval
         self._max_memory = max_memory
         self._do_stream = do_stream
+        self._load_in_8bit = load_in_8bit
 
     def preloop(self):
         print(f"Loading {self._model_name_or_path} to cuda:{self._gpu_id}...")
-        self._model = ChatModel(self._model_name_or_path, self._gpu_id, self._max_memory)
+        self._model = ChatModel(self._model_name_or_path, self._gpu_id, self._max_memory, self._load_in_8bit)
 
         if self._retrieval:
             print(f"Loading retrieval index...")
@@ -253,6 +260,13 @@ def main():
         help='max CPU RAM to allocate',
         required=False
     )
+    # `pip install bitsandbytes` to use. No effect when used with -g or -r.
+    parser.add_argument(
+        '--load-in-8bit',
+        default=False,
+        action='store_true',
+        help='indicates whether to load model in 8 bit'
+    )
     args = parser.parse_args()
 
     # set max_memory dictionary if given
@@ -278,6 +292,7 @@ def main():
         args.retrieval,
         max_memory,
         not args.no_stream,
+        args.load_in_8bit,
     ).cmdloop()
 
 
