@@ -13,7 +13,7 @@ import os
 import sys
 
 CUR_DIR = os.path.abspath(os.path.dirname(__file__))
-MODEL_PATH = os.path.join(CUR_DIR, "../../GPT-NeoXT-Chat-Base-20B/")
+MODEL_PATH = os.path.join(CUR_DIR, "../huggingface_models/GPT-NeoXT-Chat-Base-20B/")
 
 sys.path.append(CUR_DIR)
 
@@ -23,6 +23,7 @@ import argparse
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
 from bot import ChatModel
+from conversation import Conversation
 
 
 class ConvChat(object):
@@ -42,17 +43,22 @@ class ConvChat(object):
 
         logger.info("Start to init Chat Model")
         self.chat_model = ChatModel(model_name=model_name, gpu_id=0)
+
+        self.conv = Conversation(self.chat_model.human_id, self.chat_model.bot_id)
         logger.info("Initialized Chat Model")
 
     def run_text(self, input_text: gr.Textbox, state: gr.State):
+        self.conv.push_human_turn(input_text)
 
-        response = self.chat_model.do_inference(
-            prompt=input_text,
+        output = self.chat_model.do_inference(
+            prompt=self.conv.get_raw_prompt(),
             max_new_tokens=self.max_new_tokens,
             do_sample=self.sample,
             temperature=self.temperature,
             top_k=self.top_k
         )
+        self.conv.push_model_response(output)
+        response = self.conv.get_last_turn()
 
         state = state + [(input_text, response)]
         return state, state
