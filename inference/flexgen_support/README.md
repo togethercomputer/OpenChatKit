@@ -1,0 +1,1 @@
+python -m flex_neox --model togethercomputer/GPT-NeoXT-Chat-Base-20B --prompt-len 32 --gen-len 4 --percent 10 90 0 100 0 100 --gpu-batch-size 32 --overlap False --log-file foo_test.txt
