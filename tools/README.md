@@ -9,6 +9,7 @@ The commands to run the model load benchmark tool is:
 $ python3 model_load_benchmark.py -i benchmark_input.json -o benchmark_results.json -d cuda:0
 ```
 
+```
 usage: model_load_benchmark.py [-h] -i INPUT -o OUTPUT [-d DEVICE] [-r REPEAT_INFER]
 
 Benchmark downloading, loading, and running an inferernce for a set of ML models.
@@ -23,6 +24,7 @@ optional arguments:
                         Cuda device name, e.g. "cuda:0"
   -r REPEAT_INFER, --repeat-infer REPEAT_INFER
                         Repeat inferrence for warm timings
+```
 
 The input file is a JSON file with the names and paths of the models to be tested. For example:
 ```JSON
@@ -51,16 +53,16 @@ An example of the output is:
 ```JSON
 {
     "GPT-JT-6B-v1": {
-        "tokenizer_download_sec": 1.5241949558258057,
-        "tokenizer_load_sec": 0.10464024543762207,
-        "model_download_sec": 124.70549297332764,
-        "model_load_to_ram_sec": 127.81262159347534,
-        "model_main_memory_MB": 12297.105408,
-        "model_transfer_to_gpu_sec": 3.2990105152130127,
-        "model_gpu_memory_MB": 12219.744768,
-        "inference_sec": 0.9375214576721191,
-        "inference_warm_sec": 0.047981548309326175,
-        "total_sec": 258.38348174095154
+        "tokenizer_download_sec": 1.52,
+        "tokenizer_load_sec": 0.10,
+        "model_download_sec": 124.70,
+        "model_load_to_ram_sec": 127.81,
+        "model_main_memory_MB": 12297.10,
+        "model_transfer_to_gpu_sec": 3.29,
+        "model_gpu_memory_MB": 12219.74,
+        "inference_sec": 0.93,
+        "inference_warm_sec": 0.047,
+        "total_sec": 258.38
     }
 }
 ```
