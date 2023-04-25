@@ -1,0 +1,7 @@
+{
+    "GPT-NeoXT-Chat-Base-20B": "togethercomputer/GPT-NeoXT-Chat-Base-20B",
+    "Pythia-Chat-Base-7B": "togethercomputer/Pythia-Chat-Base-7B",
+    "GPT-JT-Moderation-6B": "togethercomputer/GPT-JT-Moderation-6B",
+    "GPT-JT-6B-v1": "togethercomputer/GPT-JT-6B-v1",
+    "GPT-JT-6B-v0": "togethercomputer/GPT-JT-6B-v0"
+}
