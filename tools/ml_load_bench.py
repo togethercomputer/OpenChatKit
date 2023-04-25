@@ -4,28 +4,11 @@ import time
 import torch
 import torchvision
 import os
+import psutil
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
-# Returns a list of indices for available GPU devices based on memory loads.
-def get_available_devices(mem_load_threshold: float = 0.05):
-    device_count = torch.cuda.device_count()
-    available_devices = []
-    for i in range(device_count):
-        device = torch.device(f"cuda:{i}")
-
-        mem_used = torch.cuda.memory_allocated(device)
-        mem_total = torch.cuda.get_device_properties(device).total_memory
-        mem_load = mem_used / mem_total
-
-        # Check if the device is being used 
-        if mem_load < mem_load_threshold:
-            # If the device is not being used, add it to the list of available GPUs
-            available_devices.append(device)
-
-    return available_devices
-
 # Benchmark download, tokenize, load, inference time.
-def benchmark(model_dict: dict):
+def benchmark(model_dict: dict, device_name: str):
 
     # Initialize the benchmark results dictionary
     results_dict = {}
@@ -35,43 +18,60 @@ def benchmark(model_dict: dict):
         print("ERROR: CUDA GPUs are not available, benchmark not run")
         return results_dict
 
-    # Load the GPU
-    available_devices = get_available_devices()
+    device = torch.device(device_name)
 
-    if len(available_devices) == 0:
-        print("ERROR: All CUDA GPUs are being used, benchmark not run")
-        return results_dict
-    
-    device = available_devices[0]
+    print(f'Using device {device}')
 
     # Loop through the models to test
     for model_name, model_path in model_dict.items():
+        # purge unused cached memory
+        torch.cuda.empty_cache()
+
         print(f"Testing model: {model_name}")
 
+        # Measure the time it takes to download the tokenizer data and load the tokenizer
+        tokenizer_download_start_time = time.time()
+        tokenizer = AutoTokenizer.from_pretrained(model_path, force_download=True)
+        tokenizer_download_end_time = time.time()
 
-        # Measure the time it takes to setup the tokenizer
-        tokenize_start_time = time.time()
-        tokenizer = AutoTokenizer.from_pretrained(mname)
-        tokenize_end_time = time.time()
-        tokenize_time = tokenize_end_time - tokenize_start_time
+        tokenizer = None
 
-        print(f"Testing model: {model_name} --- tokenize time  = {load_time}")
+        # Measure the time it takes to  load the tokenizer
+        tokenizer_load_start_time = time.time()
+        tokenizer = AutoTokenizer.from_pretrained(model_path)
+        tokenizer_load_end_time = time.time()
 
-        # Measure the time it takes to download the model
-        download_start_time = time.time()
-        model = AutoModelForCausalLM.from_pretrained(mname, torch_dtype=torch.float16, torchscript=True, force_download=True)
-        download_end_time = time.time()
-        download_time = download_end_time - download_start_time
+        tokenizer_load_time = tokenizer_load_end_time - tokenizer_load_start_time
+        tokenizer_download_time = tokenizer_download_end_time - tokenizer_download_start_time - tokenizer_load_time
 
-        print(f"Testing model: {model_name} --- download time  = {download_time}")
+        print(f"Testing model: {model_name} --- tokenizer download time = {tokenizer_download_time:.3} sec")
+        print(f"Testing model: {model_name} --- tokenize load time = {tokenizer_load_time:.3} sec")
 
-        # Measure the time it takes to load the model onto the GPU
-        load_start_time = time.time()
+        # Measure the time it takes to download and load the model into main memory
+        model_download_start_time = time.time()
+        model = AutoModelForCausalLM.from_pretrained(model_path, torch_dtype=torch.float16, torchscript=True, force_download=True)
+        model_download_end_time = time.time()
+        
+        model = None
+
+        # Measure the time it takes to load the model into main memory
+        model_load_to_ram_start_time = time.time()
+        model = AutoModelForCausalLM.from_pretrained(model_path, torch_dtype=torch.float16, torchscript=True)
+        model_load_to_ram_end_time = time.time()
+
+        model_load_to_ram_time = model_load_to_ram_end_time - model_load_to_ram_start_time
+        model_download_time = model_download_end_time - model_download_start_time - model_load_to_ram_time
+
+        print(f"Testing model: {model_name} --- model download time = {model_download_time:.3} sec")
+        print(f"Testing model: {model_name} --- model load to RAM time = {model_load_to_ram_time:.3} sec")
+
+        # Measure the time it takes to load the model from main memory to the GPU
+        model_xfer_to_gpu_start_time = time.time()
         model = model.to(device)
-        load_end_time = time.time()
-        load_time = load_end_time - load_start_time
+        model_xfer_to_gpu_end_time = time.time()
+        model_xfer_to_gpu_time = model_xfer_to_gpu_end_time - model_xfer_to_gpu_start_time
 
-        print(f"Testing model: {model_name} --- load time      = {load_time}")
+        print(f"Testing model: {model_name} --- model transfer to GPU time = {model_xfer_to_gpu_time:.3} sec")
 
         # Measure the time it takes to run inference
         inference_start_time = time.time()
@@ -80,14 +80,21 @@ def benchmark(model_dict: dict):
         inference_end_time = time.time()
         inference_time = inference_end_time - inference_start_time
 
-        print(f"Testing model: {model_name} --- inference time = {inference_time}")
+        print(f"Testing model: {model_name} --- inference time = {inference_time:.3} sec")
+
+        total_time = tokenizer_download_time + tokenizer_load_time + model_download_time + model_load_to_ram_time + model_xfer_to_gpu_time + inference_time
+
+        print(f"Testing model: {model_name} --- total time = {total_time:.3} sec")
 
         # Add the results to the dictionary
         results_dict[model_name] = {
-            "download_time": download_time,
-            "tokenize_time": tokenize_time,
-            "load_time": load_time,
-            "inference_time": inference_time
+            "tokenizer_download_time": tokenizer_download_time,
+            "tokenizer_load_time": tokenizer_load_time,
+            "model_download_time": model_download_time,
+            "model_load_to_ram_time": model_load_to_ram_time,
+            "model_transfer_to_gpu_time": model_xfer_to_gpu_time,
+            "inference_time": inference_time,
+            "total_time": total_time
         }
 
         # Unload the model
@@ -97,14 +104,14 @@ def benchmark(model_dict: dict):
     return results_dict
 
 # Define the main function
-def main(input_file, output_file):
+def main(input_file, output_file, device_name):
 
     # Load the models to test from the input file
     with open(input_file, "r") as f:
         model_dict = json.load(f)
 
     # Run the benchmark
-    results_dict = benchmark(model_dict)
+    results_dict = benchmark(model_dict, device_name)
 
     # Write the results to the output file
     with open(output_file, "w") as f:
@@ -115,9 +122,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Process JSON file')
     parser.add_argument('-i', '--input', required=True, help='input JSON file containing models to be benchmark')
     parser.add_argument('-o', '--output', required=True, help='output JSON file with model benchmark results')
+    parser.add_argument('-d', '--device', required=False, default='cuda:0', help='Cuda device name')
 
     # Parse the command line arguments
     args = parser.parse_args()
 
     # Process the data
-    main(args.input, args.output)
+    main(args.input, args.output, args.device)
