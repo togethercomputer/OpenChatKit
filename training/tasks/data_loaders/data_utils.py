@@ -275,6 +275,8 @@ class StreamDatasetList(IterableDataset):
     
 def name_to_dataset(task, tokenizer, args):
     
+    dataset=None
+    
     if 'prosocial_plus_regular.jsonl' in task:
         from .prosocial import StreamDataset as _StreamDataset
         data = load_dataset("json", data_files=task, split="train", streaming=True).shuffle(buffer_size=100_000, seed=args.seed)
