@@ -56,7 +56,7 @@ class ChatModel:
         # load model onto one device
         if max_memory is None:
             self._model = AutoModelForCausalLM.from_pretrained(
-                model_name, torch_dtype=torch.float16, device_map="auto", use_auth_token=USE_AUTH_TOKEN)
+                model_name, torch_dtype=torch.float16, use_auth_token=USE_AUTH_TOKEN)
             self._model.to(device)
         # load the model with the given max_memory config (for devices with insufficient VRAM or multi-gpu)
         else:
@@ -245,6 +245,7 @@ def main():
         action='store',
         help='max VRAM to allocate per GPU',
         nargs='+',
+        default=None,
         required=False,
     )
     parser.add_argument(
