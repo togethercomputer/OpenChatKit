@@ -3,7 +3,7 @@ DIR=$(cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd)
 netif=lo
 export GLOO_SOCKET_IFNAME=${netif}
 export NCCL_SOCKET_IFNAME=${netif}
-export MODEL_NAME=RedPajama-3B-Base
+export MODEL_NAME=RedPajama-3B-chat
 
 export SHOW_DATA=0
 
@@ -12,7 +12,7 @@ BASE_MODEL="${DIR}/../pretrained/RedPajama-3B/togethercomputer_RedPajama-Base-IN
 CHECKPOINT_STEPS=100
 
 # DATASETS="${DIR}/../data/OIG/files/unified_image_prompts_instructions.jsonl:0.01"
-DATASETS="/home/xiayao/data/finetuning_data/stackexchange.jsonl:1.0"
+DATASETS="{YOUR_DATASET_PATH}.jsonl:1.0"
 
 ARGS="--model-name ${BASE_MODEL} \
 --tokenizer-name ${BASE_MODEL} \

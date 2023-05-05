@@ -14,6 +14,7 @@ import retrieval.wikipedia as wp
 from transformers import AutoTokenizer, AutoModelForCausalLM, AutoConfig, StoppingCriteria, StoppingCriteriaList
 from accelerate import infer_auto_device_map, init_empty_weights
 
+USE_AUTH_TOKEN=True
 
 class StopWordsCriteria(StoppingCriteria):
     def __init__(self, tokenizer, stop_words, stream_callback):
@@ -55,14 +56,14 @@ class ChatModel:
         # load model onto one device
         if max_memory is None:
             self._model = AutoModelForCausalLM.from_pretrained(
-                model_name, torch_dtype=torch.float16, device_map="auto")
+                model_name, torch_dtype=torch.float16, device_map="auto", use_auth_token=USE_AUTH_TOKEN)
             self._model.to(device)
         # load the model with the given max_memory config (for devices with insufficient VRAM or multi-gpu)
         else:
-            config = AutoConfig.from_pretrained(model_name)
+            config = AutoConfig.from_pretrained(model_name, use_auth_token=USE_AUTH_TOKEN)
             # load empty weights
             with init_empty_weights():
-                model_from_conf = AutoModelForCausalLM.from_config(config)
+                model_from_conf = AutoModelForCausalLM.from_config(config, use_auth_token=USE_AUTH_TOKEN)
 
             model_from_conf.tie_weights()
 
@@ -79,9 +80,10 @@ class ChatModel:
                 device_map=device_map,
                 offload_folder="offload",  # optional offload-to-disk overflow directory (auto-created)
                 offload_state_dict=True,
-                torch_dtype=torch.float16
+                torch_dtype=torch.float16,
+                use_auth_token=USE_AUTH_TOKEN
             )
-        self._tokenizer = AutoTokenizer.from_pretrained(model_name)
+        self._tokenizer = AutoTokenizer.from_pretrained(model_name, use_auth_token=USE_AUTH_TOKEN)
 
     def do_inference(self, prompt, max_new_tokens, do_sample, temperature, top_k, stream_callback=None):
         stop_criteria = StopWordsCriteria(self._tokenizer, [self.human_id], stream_callback)
