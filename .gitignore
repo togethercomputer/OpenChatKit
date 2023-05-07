@@ -141,4 +141,4 @@ dmypy.json
 /huggingface_models/
 /training/wandb/
 
-*.jsonl
+data/OIG-chip2/*.jsonl
