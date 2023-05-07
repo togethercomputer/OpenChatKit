@@ -3,7 +3,7 @@ DIR=$(cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd)
 netif=lo
 export GLOO_SOCKET_IFNAME=${netif}
 export NCCL_SOCKET_IFNAME=${netif}
-export MODEL_NAME=rp-incite-chat-3b-fintuned
+export MODEL_NAME=redpajama-incite-chat-3b-sample
 
 export SHOW_DATA=0
 
