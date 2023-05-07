@@ -20,7 +20,7 @@ from transformers.models.gpt_neox.modeling_gpt_neox import RotaryEmbedding
 try:
     from flash_attn.flash_attention import FlashAttention
     flash_attn_installed = True
-    print('>>>>> flash attention')
+    print('>>>>> using flash attention')
 except ImportError:
     flash_attn_installed = False
     
