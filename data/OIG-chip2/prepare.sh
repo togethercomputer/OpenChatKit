@@ -1,0 +1,1 @@
+wget https://huggingface.co/datasets/laion/OIG/resolve/main/unified_chip2.jsonl -O data/OIG-chip2/unified_chip2.jsonl
