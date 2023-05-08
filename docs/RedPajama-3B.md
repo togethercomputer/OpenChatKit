@@ -58,7 +58,12 @@ In order to use it for inference, you will need to convert it to the HuggingFace
 (as an example, please change the checkpoint path, n-stages and n-layer-per-stage according to the training script):
 
 ```
-python tools/convert_to_hf_gptneox.py --config-name togethercomputer/RedPajama-INCITE-Chat-3B-v1 --ckpt-path model_ckpts/rp-incite-chat-3b-fintuned/checkpoint_100/ --save-path model_ckpts/hf --n-stages 4 --n-layer-per-stage 8
+python tools/convert_to_hf_gptneox.py 
+  --config-name togethercomputer/RedPajama-INCITE-Chat-3B-v1 
+  --ckpt-path model_ckpts/rp-incite-chat-3b-fintuned/checkpoint_100/ 
+  --save-path model_ckpts/hf 
+  --n-stages 4 
+  --n-layer-per-stage 8
 ```
 
 Then you are ready to go.
