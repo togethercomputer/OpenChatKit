@@ -82,4 +82,4 @@ model.config.use_cache = False  # silence the warnings. Please re-enable for inf
 trainer.train()
 
 # share your model with the world!
-model.push_to_hub("USERNAME/REPONAME", use_auth_token=True)
+model.push_to_hub("HF_USERNAME/HF_REPONAME", use_auth_token=True)
