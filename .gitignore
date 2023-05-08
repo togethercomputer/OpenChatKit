@@ -136,10 +136,13 @@ dmypy.json
 /pretrained/Pythia-6.9B-deduped/EleutherAI_pythia-6.9b-deduped/
 /pretrained/RedPajama-3B/togethercomputer_RedPajama-INCITE-Chat-3B-v1
 
+
 # ignore training output
 /model_ckpts/
 /huggingface_models/
 /training/wandb/
 
+# ignore trained low-rank adapters
+/outputs/redpajama-incite-chat-3b-sample-lowrank
 data/OIG-chip2/*.jsonl
 wandb/

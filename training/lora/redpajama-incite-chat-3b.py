@@ -11,6 +11,8 @@ from transformers import AutoTokenizer, AutoConfig, AutoModelForCausalLM
 
 # this script should take around 14GB VRAM
 
+MODEL_NAME='redpajama-incite-chat-3b-sample-lowrank'
+
 # read datasets
 with open('data/OIG-chip2/unified_chip2.jsonl', 'r') as fp:
     data = [json.loads(x) for x in fp.readlines()]
@@ -82,4 +84,4 @@ model.config.use_cache = False  # silence the warnings. Please re-enable for inf
 trainer.train()
 
 # share your model with the world!
-model.push_to_hub("HF_USERNAME/HF_REPONAME", use_auth_token=True)
+model.save_pretrained(f"outputs/{MODEL_NAME}")

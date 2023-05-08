@@ -2,13 +2,14 @@ import torch
 from peft import PeftModel, PeftConfig
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-peft_model_id = "HF_USERNAME/REPO_NAME"
-config = PeftConfig.from_pretrained(peft_model_id)
+peft_model_path ='outputs/redpajama-incite-chat-3b-sample-lowrank'
+
+config = PeftConfig.from_pretrained(peft_model_path)
 model = AutoModelForCausalLM.from_pretrained(config.base_model_name_or_path, return_dict=True, load_in_8bit=True, device_map='auto')
 tokenizer = AutoTokenizer.from_pretrained(config.base_model_name_or_path)
 
 # Load the Lora model
-model = PeftModel.from_pretrained(model, peft_model_id)
+model = PeftModel.from_pretrained(model, peft_model_path)
 
 batch = tokenizer("<human>: Hello!\n<bot>:", return_tensors='pt')
 
