@@ -142,3 +142,4 @@ dmypy.json
 /training/wandb/
 
 data/OIG-chip2/*.jsonl
+wandb/
