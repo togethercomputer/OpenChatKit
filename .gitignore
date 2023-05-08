@@ -141,4 +141,7 @@ dmypy.json
 /huggingface_models/
 /training/wandb/
 
+# ignore trained low-rank adapters
+/outputs/redpajama-incite-chat-3b-sample-lowrank
 data/OIG-chip2/*.jsonl
+wandb/
