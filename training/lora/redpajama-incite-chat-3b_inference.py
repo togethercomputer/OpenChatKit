@@ -2,7 +2,7 @@ import torch
 from peft import PeftModel, PeftConfig
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-peft_model_id = "xzyao/lora_test"
+peft_model_id = "HF_USERNAME/REPO_NAME"
 config = PeftConfig.from_pretrained(peft_model_id)
 model = AutoModelForCausalLM.from_pretrained(config.base_model_name_or_path, return_dict=True, load_in_8bit=True, device_map='auto')
 tokenizer = AutoTokenizer.from_pretrained(config.base_model_name_or_path)
