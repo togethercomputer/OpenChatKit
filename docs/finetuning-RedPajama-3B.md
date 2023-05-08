@@ -1,7 +1,7 @@
 # RedPajama-3B
 
 In this tutorial, you will learn how to fine-tune a base LLM on a sample of data. By the end of 
-the tutorial, you will have fine-tuned the RedPajama-INCITE-Base-3B model using a sample of 
+the tutorial, you will have fine-tuned the RedPajama-INCITE-Chat-3B model using a sample of 
 chat data from the OIG dataset. You can adapt this tutorial to fine-tune with your own data.
 
 In order to fine-tune the RedPajama 3B models, please follow these steps:
@@ -52,7 +52,7 @@ bash training/finetune_RedPajama-INCITE-Chat-3B-v1.sh
 
 # Convert to Huggingface Format
 
-Convert to HF format. The fine-tuned model will be saved to 
+The fine-tuned model will be saved to 
 
 ```
 model_ckpts/rp-incite-chat-3b-finetuned/checkpoint_{steps}
@@ -64,7 +64,28 @@ In order to use it for inference, you will need to convert it to the HuggingFace
 The default for n-stages used in the training script is 10 and the n-layer-per-stage is 8.
 
 ```
-python tools/convert_to_hf_gptneox.py --config-name togethercomputer/RedPajama-INCITE-Chat-3B-v1 --ckpt-path model_ckpts/rp-incite-chat-3b-fintuned/checkpoint_100/ --save-path model_ckpts/hf --n-stages 4 --n-layer-per-stage 8
+python tools/convert_to_hf_gptneox.py --config-name togethercomputer/RedPajama-INCITE-Chat-3B-v1 --ckpt-path model_ckpts/redpajama-incite-chat-3b-sample/checkpoint_10/ --save-path model_ckpts/hf --n-stages 4 --n-layer-per-stage 8
 ```
 
-Then you are ready to go.
+Then you are ready to go! You can load the model with HuggingFace and use it for inference, for example:
+
+```python
+import torch
+import transformers
+from transformers import AutoTokenizer, AutoModelForCausalLM
+
+tokenizer = AutoTokenizer.from_pretrained("togethercomputer/RedPajama-INCITE-Chat-3B-v1")
+model = AutoModelForCausalLM.from_pretrained("./model_ckpts/hf", torch_dtype=torch.float16)
+model = model.to('cuda:0')
+
+prompt = "<human>: Who is Alan Turing?\n<bot>:"
+inputs = tokenizer(prompt, return_tensors='pt').to(model.device)
+input_length = inputs.input_ids.shape[1]
+outputs = model.generate(
+    **inputs, max_new_tokens=128, do_sample=True, temperature=0.7, top_p=0.7, top_k=50, return_dict_in_generate=True
+)
+token = outputs.sequences[0, input_length:]
+output_str = tokenizer.decode(token)
+print(output_str)
+
+```
