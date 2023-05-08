@@ -5,7 +5,7 @@ import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, AutoConfig
 
 DIR = os.path.dirname(os.path.abspath(__file__))
-USE_AUTH_TOKEN = True
+USE_AUTH_TOKEN = False
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Convert HF checkpoints')
