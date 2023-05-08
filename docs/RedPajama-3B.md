@@ -34,7 +34,7 @@ bash data/OIG-chip2/prepare.sh
 The sample dataset will be saved at 
 
 ```
-data/OIG-chip2/unified_chip2.jsonl.
+data/OIG-chip2/unified_chip2.jsonl
 ```
 
 # Run Fine Tuning Script
