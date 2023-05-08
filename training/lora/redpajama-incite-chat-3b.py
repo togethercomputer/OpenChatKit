@@ -83,5 +83,6 @@ trainer = transformers.Trainer(
 model.config.use_cache = False  # silence the warnings. Please re-enable for inference!
 trainer.train()
 
-# share your model with the world!
-model.save_pretrained(f"outputs/{MODEL_NAME}")
+# The following line will upload the model to Hugging Face.
+# Uncomment this line when you are ready to share with the world!
+# model.save_pretrained(f"outputs/{MODEL_NAME}")
