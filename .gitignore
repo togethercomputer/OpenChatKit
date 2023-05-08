@@ -136,7 +136,6 @@ dmypy.json
 /pretrained/Pythia-6.9B-deduped/EleutherAI_pythia-6.9b-deduped/
 /pretrained/RedPajama-3B/togethercomputer_RedPajama-INCITE-Chat-3B-v1
 
-
 # ignore training output
 /model_ckpts/
 /huggingface_models/

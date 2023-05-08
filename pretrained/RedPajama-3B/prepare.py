@@ -4,6 +4,7 @@ import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, AutoConfig
 
 DIR = os.path.dirname(os.path.abspath(__file__))
+USE_AUTH_TOKEN = False
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Convert HF checkpoints')
@@ -22,17 +23,18 @@ if __name__ == '__main__':
         os.mkdir(save_path)
     
     print('loading model from HF...')
-    config = AutoConfig.from_pretrained(args.model_name)
+    config = AutoConfig.from_pretrained(args.model_name, use_auth_token=USE_AUTH_TOKEN)
     config.save_pretrained(save_path)
-    tokenizer = AutoTokenizer.from_pretrained(args.model_name)
+    tokenizer = AutoTokenizer.from_pretrained(args.model_name, use_auth_token=USE_AUTH_TOKEN)
     tokenizer.save_pretrained(save_path)
+
     # offload model from memory to disk if offload-dir is specified
     if args.offload_dir is not None:
         if not os.path.exists(args.offload_dir):
             os.mkdir(args.offload_dir)
-        model = AutoModelForCausalLM.from_pretrained(args.model_name, torch_dtype=torch.float16, device_map="auto", offload_folder=args.offload_dir)
+        model = AutoModelForCausalLM.from_pretrained(args.model_name, torch_dtype=torch.float16, device_map="auto", offload_folder=args.offload_dir, use_auth_token=USE_AUTH_TOKEN)
     else:
-        model = AutoModelForCausalLM.from_pretrained(args.model_name, torch_dtype=torch.float16)
+        model = AutoModelForCausalLM.from_pretrained(args.model_name, torch_dtype=torch.float16, use_auth_token=USE_AUTH_TOKEN)
     print('loaded model from HF...')
     
     print('converting the embedding layer...')
@@ -45,7 +47,7 @@ if __name__ == '__main__':
         print(f'converting the {i}-th transformer layer...')
         torch.save(model.gpt_neox.layers[i].state_dict(), os.path.join(save_path, f'pytorch_{i}.pt'))
         print(f'converted the {i}-th transformer layer.')
-    
+
     print('converting the lm_head layer...')
     item = {}
     item['embed_out.weight'] = model.embed_out.weight
