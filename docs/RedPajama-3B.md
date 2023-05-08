@@ -1,4 +1,4 @@
-# RedPajama-3B
+# Fine Tuning RedPajama-INCITE-Base-3B
 
 In order to fine-tune the RedPajama 3B models, please follow these steps:
 
