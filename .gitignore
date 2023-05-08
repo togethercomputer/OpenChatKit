@@ -142,6 +142,6 @@ dmypy.json
 /training/wandb/
 
 # ignore trained low-rank adapters
-/outputs/redpajama-incite-chat-3b-sample-lowrank
+/outputs/
 data/OIG-chip2/*.jsonl
 wandb/
