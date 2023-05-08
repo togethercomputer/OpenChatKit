@@ -24,7 +24,7 @@ pretrained/RedPajama-3B/togethercomputer_RedPajama-INCITE-Chat-3B-v1
 
 # Prepare Fine Tuning Data
 
-We now need to preapre the training data.  We provide an example script that downloads a small slice of data from OIG. 
+We now need to prepare the training data.  We provide an example script that downloads a small slice of data from OIG. 
 To download this sample dataset, please run:
  
 ```
