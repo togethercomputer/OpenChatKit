@@ -1,6 +1,6 @@
 # Fine Tuning RedPajama-INCITE-Base-3B
 
-In order to fine-tune the RedPajama 3B models, please follow these steps:
+In order to fine-tune the Fine Tuning RedPajama-INCITE-Base-3B model, please follow these steps:
 
 First clone the OpenChatKit repo:
 
