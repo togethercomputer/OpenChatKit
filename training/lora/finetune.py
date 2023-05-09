@@ -357,7 +357,11 @@ def main():
         "use_auth_token": True if model_args.use_auth_token else None,
     }
 
-    peft_config = LoraConfig(task_type=TaskType.CAUSAL_LM, inference_mode=False, r=8, lora_alpha=32, lora_dropout=0.1)
+    target_modules = ["query_key_value", "xxx"]  # workaround to use 8bit training on this model
+
+    peft_config = LoraConfig(
+    r=16, lora_alpha=32, target_modules=target_modules, lora_dropout=0.05, bias="none", task_type="CAUSAL_LM"
+    )
 
     if model_args.tokenizer_name:
         tokenizer = AutoTokenizer.from_pretrained(model_args.tokenizer_name, **tokenizer_kwargs)
@@ -397,6 +401,10 @@ def main():
 
     if model_args.int8:
         model = prepare_model_for_int8_training(model)
+
+
+    model.gradient_checkpointing_enable()  # reduce number of stored activations
+    model.enable_input_require_grads()
 
     model = get_peft_model(model, peft_config)
     model.print_trainable_parameters()
