@@ -563,8 +563,9 @@ def main():
             model.config.use_cache = False
 
         train_result = trainer.train(resume_from_checkpoint=checkpoint)
-        trainer.save_model()  # Saves the tokenizer too for easy upload
-
+        
+        model.save_pretrained(training_args.output_dir)
+        
         metrics = train_result.metrics
 
         max_train_samples = (
