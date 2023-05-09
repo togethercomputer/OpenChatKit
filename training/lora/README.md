@@ -20,7 +20,7 @@
 #### From HuggingFace dataset:
 ```
 deepspeed --num_gpus=1 finetune.py \
---deepspeed config.json \
+--deepspeed example/config.json \
 --model_name_or_path togethercomputer/RedPajama-INCITE-Base-3B-v1 \
 --dataset_name imdb \
 --do_train \
@@ -40,7 +40,7 @@ deepspeed --num_gpus=1 finetune.py \
 #### From train and validation files:
 ```
 deepspeed --num_gpus=1 finetune.py \
---deepspeed config.json \
+--deepspeed example/config.json \
 --model_name_or_path togethercomputer/RedPajama-INCITE-Base-3B-v1 \
 --train_file train.csv \
 --validation_file validation.csv \
@@ -60,10 +60,10 @@ deepspeed --num_gpus=1 finetune.py \
 ```
 
 #### In 8-bit
-** Change `fp16.enabled` to `false` in `config.json` **
+** Change `fp16.enabled` to `false` in `example/config.json` **
 ```
 deepspeed --num_gpus=1 finetune.py \
---deepspeed config.json \
+--deepspeed example/config.json \
 --model_name_or_path togethercomputer/RedPajama-INCITE-Base-3B-v1 \
 --dataset_name imdb \
 --do_train \
