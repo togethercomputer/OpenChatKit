@@ -3,6 +3,8 @@
 
 `mamba install -c conda-forge cudatoolkit-dev`
 
+`export CUDA_HOME=$CONDA_PREFIX`
+
 `pip install evaluate datasets peft git+https://github.com/huggingface/transformers.git git+https://github.com/EleutherAI/DeeperSpeed.git`
 
 `pip install 'transformers[sklearn]'`
@@ -11,8 +13,6 @@
 `pip install bitsandbytes`
 
 ### Start...
-
-`export CUDA_HOME=$CONDA_PREFIX`
 
 `cd training/lora`
 
