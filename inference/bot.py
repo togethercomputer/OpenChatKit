@@ -114,7 +114,7 @@ class OpenChatKitShell(cmd.Cmd):
         super().__init__()
         self._gpu_id = int(gpu_id)
         self._model_name_or_path = model_name_or_path
-        self._max_tokens = max_tokens
+        self._max_tokens = int(max_tokens)
         self._sample = sample
         self._temperature = temperature
         self._top_k = top_k
