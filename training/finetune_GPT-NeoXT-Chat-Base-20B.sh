@@ -9,7 +9,9 @@ export SHOW_DATA=0
 
 BASE_MODEL="${DIR}/../pretrained/GPT-NeoX-20B/EleutherAI_gpt-neox-20b/"
 
-CHECKPOINT_STEPS=100
+TOTAL_STEPS=${FINETUNE_TOTAL_STEPS:-20000}
+CHECKPOINT_STEPS=${FINETUNE_CHECKPOINT_STEPS:-100}
+CHECKPOINT_PATH=${FINETUNE_CHECKPOINT_PATH:-"${DIR}/../model_ckpts/${MODEL_NAME}"}
 
 DATASETS="\
 ${DIR}/../data/OIG/files/unified_ni.jsonl:0.2,\
@@ -49,8 +51,8 @@ ARGS="--model-name ${BASE_MODEL} \
 --load-pretrained-model true \
 --task-name \
 "${DATASETS}" \
---checkpoint-path ${DIR}/../model_ckpts/${MODEL_NAME} \
---total-steps 20000 --warmup-steps 10 --train-warmup-steps 0 \
+--checkpoint-path ${CHECKPOINT_PATH} \
+--total-steps ${TOTAL_STEPS} --warmup-steps 10 --train-warmup-steps 0 \
 --checkpoint-steps ${CHECKPOINT_STEPS} \
 --lr 1e-6 --seq-length 2048 --batch-size 64 --micro-batch-size 1 --gradient-accumulate-step 1 \
 --dist-url tcp://127.0.0.1:7033 \
