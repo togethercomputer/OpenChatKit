@@ -112,7 +112,7 @@ class OpenChatKitShell(cmd.Cmd):
 
     def __init__(self, gpu_id, model_name_or_path, max_tokens, sample, temperature, top_k, retrieval, max_memory, do_stream):
         super().__init__()
-        self._gpu_id = int(gpu_id)
+        self._gpu_id = gpu_id
         self._model_name_or_path = model_name_or_path
         self._max_tokens = int(max_tokens)
         self._sample = sample
@@ -198,6 +198,7 @@ def main():
     parser.add_argument(
         '--gpu-id',
         default=0,
+        type=int,
         help='the ID of the GPU to run on'
     )
     parser.add_argument(
@@ -208,6 +209,7 @@ def main():
     parser.add_argument(
         '--max-tokens',
         default=128,
+        type=int,
         help='the maximum number of tokens to generate'
     )
     parser.add_argument(
@@ -224,11 +226,13 @@ def main():
     parser.add_argument(
         '--temperature',
         default=0.6,
+        type=float,
         help='temperature for the LM'
     )
     parser.add_argument(
         '--top-k',
         default=40,
+        type=int,
         help='top-k for the LM'
     )
     parser.add_argument(
