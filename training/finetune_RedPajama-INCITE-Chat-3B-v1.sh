@@ -9,7 +9,9 @@ export SHOW_DATA=0
 
 BASE_MODEL="${DIR}/../pretrained/RedPajama-3B/togethercomputer_RedPajama-INCITE-Chat-3B-v1"
 
-CHECKPOINT_STEPS=10
+TOTAL_STEPS=${FINETUNE_TOTAL_STEPS:-10}
+CHECKPOINT_STEPS=${FINETUNE_CHECKPOINT_STEPS:-10}
+CHECKPOINT_PATH=${FINETUNE_CHECKPOINT_PATH:-"${DIR}/../model_ckpts/${MODEL_NAME}"}
 
 DATASETS="${DIR}/../data/OIG-chip2/unified_chip2.jsonl:1"
 
@@ -22,8 +24,8 @@ ARGS="--model-name ${BASE_MODEL} \
 --load-pretrained-model true \
 --task-name \
 "${DATASETS}" \
---checkpoint-path ${DIR}/../model_ckpts/${MODEL_NAME} \
---total-steps 10 --warmup-steps 0 --train-warmup-steps 0 \
+--checkpoint-path ${CHECKPOINT_PATH} \
+--total-steps ${TOTAL_STEPS} --warmup-steps 0 --train-warmup-steps 0 \
 --checkpoint-steps ${CHECKPOINT_STEPS} \
 --lr 1e-5 --seq-length 2048 --batch-size 32 --micro-batch-size 1 --gradient-accumulate-step 1 \
 --dist-url tcp://127.0.0.1:7033 \
