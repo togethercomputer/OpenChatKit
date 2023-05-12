@@ -5,7 +5,7 @@
 
 `export CUDA_HOME=$CONDA_PREFIX`
 
-`pip install evaluate datasets peft git+https://github.com/huggingface/transformers.git git+https://github.com/EleutherAI/DeeperSpeed.git`
+`pip install evaluate datasets peft transformers git+https://github.com/EleutherAI/DeeperSpeed.git`
 
 `pip install 'transformers[sklearn]'`
 
