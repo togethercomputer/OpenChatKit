@@ -52,6 +52,27 @@ def add_model_arguments(parser):
                         help='-')
     parser.add_argument('--num-heads', type=int, default=12, metavar='N',
                         help='-')
+    
+def add_ckpt_arguments(parser):
+    parser.add_argument('--model-name', type=str, default='gpt2', metavar='S',
+                        help='model name or path')
+    parser.add_argument('--tokenizer-name', type=str, default='gpt2', metavar='S',
+                        help='tokenizer name or path')
+    parser.add_argument('--model-type', type=str, default='gpt2', metavar='S',
+                        help='model name or path')
+    parser.add_argument('--checkpoint-load-path', type=str, default=None,
+                        help='Path to the ckpt to load. If none, it will be set to `checkpoint-path`')
+    parser.add_argument('--checkpoint-path', type=str, default='model_checkpoints/gpt2',
+                        help='Path where ckpts are saved.')
+    parser.add_argument('--load-pretrained-model', 
+                        type=lambda x: x.lower()=='true', default=True, metavar='S',
+                        help='load pretrained model or not.')
+    parser.add_argument('--load-checkpoint', 
+                        type=lambda x: x.lower()=='true', default=True, metavar='S',
+                        help='load pretrained model or not.')
+    parser.add_argument('--init-steps', 
+                        type=lambda x: x.lower()=='true', default=False, metavar='S',
+                        help='init steps to 0, affect lr scheduler.')
 
 
 def add_training_hyper_parameter_arguments(parser):

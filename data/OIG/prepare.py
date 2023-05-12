@@ -28,3 +28,9 @@ for f in glob.glob(f"{DIR}/files/*.gz"):
         open(out_path, 'wb') as outfile
     ):
         shutil.copyfileobj(infile, outfile)
+
+process = subprocess.run(
+    f"git clone https://huggingface.co/datasets/laion/community-chat-contributions {DIR}/contributions",
+    shell=True,
+    check=True
+)
