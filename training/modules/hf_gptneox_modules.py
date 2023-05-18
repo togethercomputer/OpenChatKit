@@ -290,7 +290,7 @@ class GPTBlock(_GPTNeoXBlock):
             attn_output = attention_layer_output[0]
             # outputs = attention_layer_output[1:]
 
-            if self.config.use_parallel_residual:
+            if hasattr(self.config, 'use_parallel_residual') and self.config.use_parallel_residual:
                 # x = x + attn(ln1(x)) + mlp(ln2(x))
                 # x_a = attn_output, 
                 mlp_out = self.mlp(self.post_attention_layernorm(x))
