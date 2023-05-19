@@ -16,11 +16,9 @@ if __name__ == '__main__':
                         help='directory to offload from memory')
     args = parser.parse_args()
     
-    if not os.path.exists(args.save_dir):
-        os.mkdir(args.save_dir)
     save_path = os.path.join(args.save_dir, args.model_name.replace('/', '_'))
     if not os.path.exists(save_path):
-        os.mkdir(save_path)
+        os.makedirs(save_path, exist_ok=True)
     
     print('loading model from HF...')
     config = AutoConfig.from_pretrained(args.model_name)
