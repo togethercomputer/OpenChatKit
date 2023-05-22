@@ -10,7 +10,7 @@ export SHOW_DATA=0
 # Set the base model path. If FINETUNE_BASE_MODEL is set, use that as the the
 # base model path. Otherwise, if FINETUNE_WORK_DIR is set, use that to define
 # base model path. Otherwise, use the default base model path.
-if [ -n "${FINETUNE_BASE_MODEL}"]; then
+if [ -n "${FINETUNE_BASE_MODEL}" ]; then
     BASE_MODEL="${FINETUNE_BASE_MODEL}"
 elif [ -n "${FINETUNE_WORK_DIR}" ]; then
     # Use the work directory to define the base model path.
@@ -24,7 +24,7 @@ fi
 # Set the dataset path. If FINETUNE_DATASET_PATH is set, use that as the the
 # dataset path. Otherwise, if FINETUNE_WORK_DIR is set, use that to define
 # dataset path. Otherwise, use the default dataset path.
-if [ -n "${FINETUNE_DATASET_PATH}"]; then
+if [ -n "${FINETUNE_DATASET_PATH}" ]; then
     DATASET_PATH="${FINETUNE_DATASET_PATH}"
 elif [ -n "${FINETUNE_WORK_DIR}" ]; then
     # Use the work directory to define the dataset path.
@@ -38,7 +38,7 @@ fi
 # Set the checkpoint path. If FINETUNE_CHECKPOINT_PATH is set, use that as the
 # the checkpoint path. Otherwise, if FINETUNE_WORK_DIR is set, use that to 
 # define checkpoint path. Otherwise, use the default checkpoint path.
-if [ -n "${FINETUNE_CHECKPOINT_PATH}"]; then
+if [ -n "${FINETUNE_CHECKPOINT_PATH}" ]; then
     CHECKPOINT_PATH="${FINETUNE_CHECKPOINT_PATH}"
 elif [ -n "${FINETUNE_WORK_DIR}" ]; then
     # Use the work directory to define the checkpoint path.
