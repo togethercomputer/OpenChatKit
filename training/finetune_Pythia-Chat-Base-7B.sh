@@ -7,13 +7,50 @@ export MODEL_NAME=Pythia-Chat-Base-7B
 
 export SHOW_DATA=0
 
-BASE_MODEL="${FINETUNE_BASE_MODEL:-${DIR}/../pretrained/Pythia-6.9B-deduped/EleutherAI_pythia-6.9b-deduped/}"
+# Set the base model path. If FINETUNE_BASE_MODEL is set, use that as the the
+# base model path. Otherwise, if FINETUNE_WORK_DIR is set, use that to define
+# base model path. Otherwise, use the default base model path.
+if [ -n "${FINETUNE_BASE_MODEL}"]; then
+    BASE_MODEL="${FINETUNE_BASE_MODEL}"
+elif [ -n "${FINETUNE_WORK_DIR}" ]; then
+    # Use the work directory to define the base model path.
+    BASE_MODEL="${FINETUNE_WORK_DIR}/model"
+else
+    # Use the default base model path. This assumes that this file is inside
+    # the OCK repository.
+    BASE_MODEL="${DIR}/../pretrained/Pythia-6.9B-deduped/EleutherAI_pythia-6.9b-deduped/"
+fi
+
+# Set the dataset path. If FINETUNE_DATASET_PATH is set, use that as the the
+# dataset path. Otherwise, if FINETUNE_WORK_DIR is set, use that to define
+# dataset path. Otherwise, use the default dataset path.
+if [ -n "${FINETUNE_DATASET_PATH}"]; then
+    DATASET_PATH="${FINETUNE_DATASET_PATH}"
+elif [ -n "${FINETUNE_WORK_DIR}" ]; then
+    # Use the work directory to define the dataset path.
+    DATASET_PATH="${FINETUNE_WORK_DIR}/data"
+else
+    # Use the default dataset path. This assumes that this file is inside
+    # the OCK repository.
+    DATASET_PATH="${DIR}/../data/OIG/files"
+fi
+
+# Set the checkpoint path. If FINETUNE_CHECKPOINT_PATH is set, use that as the
+# the checkpoint path. Otherwise, if FINETUNE_WORK_DIR is set, use that to 
+# define checkpoint path. Otherwise, use the default checkpoint path.
+if [ -n "${FINETUNE_CHECKPOINT_PATH}"]; then
+    CHECKPOINT_PATH="${FINETUNE_CHECKPOINT_PATH}"
+elif [ -n "${FINETUNE_WORK_DIR}" ]; then
+    # Use the work directory to define the checkpoint path.
+    CHECKPOINT_PATH="${FINETUNE_WORK_DIR}/checkpoints"
+else
+    # Use the default checkpoint path. This assumes that this file is inside
+    # the OCK repository.
+    CHECKPOINT_PATH="${DIR}/../model_ckpts/${MODEL_NAME}"
+fi
 
 TOTAL_STEPS=${FINETUNE_TOTAL_STEPS:-20000}
 CHECKPOINT_STEPS=${FINETUNE_CHECKPOINT_STEPS:-100}
-CHECKPOINT_PATH=${FINETUNE_CHECKPOINT_PATH:-"${DIR}/../model_ckpts/${MODEL_NAME}"}
-
-DATASET_PATH="${FINETUNE_DATASET_PATH:-${DIR}/../data/OIG/files}"
 
 DATASETS="\
 ${DATASET_PATH}/unified_ni.jsonl:0.2,\
