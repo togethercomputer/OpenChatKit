@@ -547,8 +547,7 @@ class GpipeAsync:
                 self.profiling_log.append(send_log)
 
     def save_on_disk(self, path):
-        if not os.path.exists(path):
-            os.makedirs(path)
+        os.makedirs(path, exist_ok=True)
         torch.save(self.model.state_dict(), os.path.join(path, 'pytorch_model.bin'))
         
     def optimizer_step(self):

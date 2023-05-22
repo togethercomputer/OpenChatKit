@@ -17,8 +17,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     
     save_path = os.path.join(args.save_dir, args.model_name.replace('/', '_'))
-    if not os.path.exists(save_path):
-        os.makedirs(save_path, exist_ok=True)
+    os.makedirs(save_path, exist_ok=True)
     
     print('loading model from HF...')
     config = AutoConfig.from_pretrained(args.model_name)
@@ -27,8 +26,7 @@ if __name__ == '__main__':
     tokenizer.save_pretrained(save_path)
     # offload model from memory to disk if offload-dir is specified
     if args.offload_dir is not None:
-        if not os.path.exists(args.offload_dir):
-            os.mkdir(args.offload_dir)
+        os.makedirs(args.offload_dir, exist_ok=True)
         model = AutoModelForCausalLM.from_pretrained(args.model_name, torch_dtype=torch.float16, device_map="auto", offload_folder=args.offload_dir)
     else:
         model = AutoModelForCausalLM.from_pretrained(args.model_name, torch_dtype=torch.float16)
