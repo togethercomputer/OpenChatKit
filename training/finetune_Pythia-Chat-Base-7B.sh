@@ -128,7 +128,10 @@ trap interrupt_handler SIGINT
 for ((i=0; i<${num_gpus}; i++)); do
     cuda_id="${gpu_array[i]}"
     python ${DIR}/dist_clm_train.py $(echo ${ARGS}) --cuda-id ${cuda_id} --rank ${i} &
-    pids+=("$!")
+
+    pid = $!
+    pids+=("${pid}")
+    echo "Launching rank ${i} on GPU ${cuda_id} with PID ${pid}"
 done
 
 wait

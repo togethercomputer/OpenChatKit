@@ -66,7 +66,9 @@ def save_checkpoint(pipe, args):
     latest_step = pipe.global_step
     checkpoint_step_path = os.path.join(args.checkpoint_path, f"checkpoint_{latest_step}")
     
-    os.system(f"mkdir -p {checkpoint_step_path}")
+    os.makedirs(checkpoint_step_path, exist_ok=True)
+
+    print(f"Saving checkpoint to {checkpoint_step_path} ...")
 
     torch.save(
         pipe.model.model.state_dict(),
@@ -96,6 +98,8 @@ def save_checkpoint(pipe, args):
     
     with open(os.path.join(args.checkpoint_path, 'latest'), 'w') as f:
         f.write(f"{latest_step}")
+
+    print(f"Checkpoint saved to {checkpoint_step_path} ... Done")
         
         
 def save_stream_dataloader_state_dict(dataloader, pipe, args):
