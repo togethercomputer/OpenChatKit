@@ -103,22 +103,34 @@ ARGS="--model-name ${BASE_MODEL} \
 --dp-mode allreduce \
 --pp-mode gpipe --profiling no-profiling"
 
+# Convert the GPU IDs to an array
+IFS=',' read -ra gpu_array <<< "${gpu_ids}"
+num_gpus=${#gpu_array[@]}
 
-(trap 'kill 0' SIGINT; \
-python ${DIR}/dist_clm_train.py $(echo ${ARGS}) --cuda-id 0 --rank 0 \
-    & \
-python ${DIR}/dist_clm_train.py $(echo ${ARGS}) --cuda-id 1 --rank 1 \
-    & \
-python ${DIR}/dist_clm_train.py $(echo ${ARGS}) --cuda-id 2 --rank 2 \
-    & \
-python ${DIR}/dist_clm_train.py $(echo ${ARGS}) --cuda-id 3 --rank 3 \
-    & \
-python ${DIR}/dist_clm_train.py $(echo ${ARGS}) --cuda-id 4 --rank 4 \
-    & \
-python ${DIR}/dist_clm_train.py $(echo ${ARGS}) --cuda-id 5 --rank 5 \
-    & \
-python ${DIR}/dist_clm_train.py $(echo ${ARGS}) --cuda-id 6 --rank 6 \
-    & \
-python ${DIR}/dist_clm_train.py $(echo ${ARGS}) --cuda-id 7 --rank 7 \
-    & \
-wait)
+
+# Array to store child process IDs
+pids=()
+
+# Function to handle SIGINT signal
+interrupt_handler() {
+    echo "Received SIGINT signal. Killing all processes..."
+    # Kill all child processes
+    for pid in "${pids[@]}"; do
+        kill "$pid"
+    done
+    exit 1
+}
+
+# Register SIGINT signal handler
+trap interrupt_handler SIGINT
+
+# Launch applications
+for ((i=0; i<${num_gpus}; i++)); do
+    cuda_id="${gpu_array[i]}"
+    python ${DIR}/dist_clm_train.py $(echo ${ARGS}) --cuda-id ${cuda_id} --rank ${i} &
+    pids+=("$!")
+done
+
+wait
+
+echo "All processes have exited"
