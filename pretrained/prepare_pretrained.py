@@ -10,7 +10,6 @@ USE_AUTH_TOKEN = False
 def prepare_pretrained(save_dir, model_name, offload_dir=None):
     if not os.path.exists(save_dir):
         os.mkdir(save_dir)
-    save_path = os.path.join(save_dir, model_name.replace('/', '_'))
     if not os.path.exists(save_path):
         os.mkdir(save_path)
     
