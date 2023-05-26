@@ -103,37 +103,45 @@ ARGS="--model-name ${BASE_MODEL} \
 --dp-mode allreduce \
 --pp-mode gpipe --profiling no-profiling"
 
-# Convert the GPU IDs to an array
-IFS=',' read -ra gpu_array <<< "${gpu_ids}"
-num_gpus=${#gpu_array[@]}
-
-
-# Array to store child process IDs
-pids=()
-
 # Function to handle SIGINT signal
-interrupt_handler() {
-    echo "Received SIGINT signal. Killing all processes..."
+function handle_sigint {
+    echo "Received SIGINT. Killing all processes..."
     # Kill all child processes
-    for pid in "${pids[@]}"; do
-        kill "$pid"
+    for pid in ${pids[@]}; do
+        kill $pid
     done
     exit 1
 }
 
-# Register SIGINT signal handler
-trap interrupt_handler SIGINT
+# Retrieve GPU IDs using nvidia-smi command
+gpu_ids=$(nvidia-smi --query-gpu=index --format=csv,noheader | awk -F',' '{print $1}' | tr '\n' ' ')
+IFS=' ' read -ra gpu_ids_array <<< "$gpu_ids"
+num_gpus=${#gpu_ids_array[@]}
 
-# Launch applications
-for ((i=0; i<${num_gpus}; i++)); do
-    cuda_id="${gpu_array[i]}"
+# Create an array to store the process IDs
+pids=()
+
+# Trap the SIGINT signal and call the handler function
+trap handle_sigint SIGINT
+
+# Iterate over the range of GPU IDs
+for ((i=0; i<num_gpus; i++)); do
+    # Get the current CUDA ID
+    cuda_id=${gpu_ids_array[i]}
+
+    # Launch the process with CUDA ID and rank
     python ${DIR}/dist_clm_train.py $(echo ${ARGS}) --cuda-id ${cuda_id} --rank ${i} &
 
-    pid = $!
-    pids+=("${pid}")
+    # Store the process ID in the array
+    pid=$!
+    pids+=(${pid})
     echo "Launching rank ${i} on GPU ${cuda_id} with PID ${pid}"
 done
 
-wait
+# Wait for all processes to finish
+for pid in ${pids[@]}; do
+    wait $pid
+done
 
-echo "All processes have exited"
+# Print a message when all processes have finished
+echo "All training processes have finished."
