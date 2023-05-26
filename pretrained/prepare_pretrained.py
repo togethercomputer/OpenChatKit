@@ -7,11 +7,8 @@ DIR = os.path.dirname(os.path.abspath(__file__))
 USE_AUTH_TOKEN = False
 
 # Load pretrained model from HuggingFace and save it to disk
-def prepare_pretrained(save_dir, model_name, offload_dir=None):
-    if not os.path.exists(save_dir):
-        os.mkdir(save_dir)
-    if not os.path.exists(save_path):
-        os.mkdir(save_path)
+def prepare_pretrained(save_path, model_name, offload_dir=None):
+    os.makedirs(save_path, exist_ok=True)
     
     print('loading model from HF...')
     config = AutoConfig.from_pretrained(model_name, use_auth_token=USE_AUTH_TOKEN)
@@ -21,8 +18,7 @@ def prepare_pretrained(save_dir, model_name, offload_dir=None):
 
     # offload model from memory to disk if offload-dir is specified
     if offload_dir is not None:
-        if not os.path.exists(offload_dir):
-            os.mkdir(offload_dir)
+        os.makedirs(offload_dir, exist_ok=True)
         model = AutoModelForCausalLM.from_pretrained(model_name, 
                                                      torch_dtype=torch.float16,
                                                      device_map="auto",
