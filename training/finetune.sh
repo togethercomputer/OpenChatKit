@@ -14,6 +14,7 @@ export SHOW_DATA=0
 #  -c, --checkpoint: Path to the checkpoint.
 #  -t, --total-steps: Total number of steps to train.
 #  -s, --checkpoint-steps: Number of steps between checkpoints.
+#  -b, --batch-size: Batch size.
 #  -w, --work-dir: Path to the work directory.
 
 for i in "$@"
@@ -67,8 +68,17 @@ case $i in
         echo "Error: Checkpoint steps must be a number greater than or equal to 0."
         exit 1
     fi
-    
+
     ;;
+    -b=*|--batch-size=*)
+    FINETUNE_BATCH_SIZE="${i#*=}"
+    shift # past argument=value
+
+    # Check if the batch size is a number greater than 0.
+    if ! [[ "${FINETUNE_BATCH_SIZE}" =~ ^[0-9]+$ ]] || [ "${FINETUNE_BATCH_SIZE}" -le 0 ]; then
+        echo "Error: Batch size must be a number greater than 0."
+        exit 1
+    fi
     *)
           # unknown option
     ;;
@@ -119,6 +129,7 @@ fi
 
 TOTAL_STEPS=${FINETUNE_TOTAL_STEPS:-20000}
 CHECKPOINT_STEPS=${FINETUNE_CHECKPOINT_STEPS:-100}
+BATCH_SIZE=${FINETUNE_BATCH_SIZE:-32}
 
 # Initialize datasets with files in the DATASET_PATH directory
 DATASETS=""
@@ -148,7 +159,7 @@ ARGS="--model-name ${BASE_MODEL} \
 --checkpoint-path ${CHECKPOINT_PATH} \
 --total-steps ${TOTAL_STEPS} --warmup-steps 10 --train-warmup-steps 0 \
 --checkpoint-steps ${CHECKPOINT_STEPS} \
---lr 1e-5 --seq-length 2048 --batch-size 32 --micro-batch-size 1 --gradient-accumulate-step 1 \
+--lr 1e-5 --seq-length 2048 --batch-size ${BATCH_SIZE} --micro-batch-size 1 --gradient-accumulate-step 1 \
 --dist-url tcp://127.0.0.1:7033 \
 --num-layers 8 --embedding-dim 4096 \
 --world-size 8 --pipeline-group-size 4 --data-group-size 2 \
