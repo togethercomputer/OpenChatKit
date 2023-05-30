@@ -80,6 +80,11 @@ def clone_git_repo(data_source, destination_dir):
         shell=True
     )
 
+    # Check if the git repository has already been cloned
+    if os.path.exists(os.path.join(destination_dir)):
+        print(f"Git repository already exists at {destination_dir}. Skipping clone.")
+        return
+
     # Check if git-lfs is installed
     if process.returncode != 0 and is_git_lfs_installed():
         subprocess.run('git lfs install', shell=True, check=True)
@@ -99,7 +104,7 @@ def clone_git_repo(data_source, destination_dir):
     except subprocess.CalledProcessError:
         print(f"error: failed to clone repository {data_source}")
         sys.exit(1)
-        
+
     
 
 # Download all files from an S3 compatible storage service.
