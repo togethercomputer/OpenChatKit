@@ -7,17 +7,6 @@ export GLOO_SOCKET_IFNAME=${netif}
 export NCCL_SOCKET_IFNAME=${netif}
 export SHOW_DATA=0
 
-# Parse command line arguments.
-#  -h, --help: Show help message.
-#  -n, --model-name: Name of the model.
-#  -m, --base-model: Path to the base model.
-#  -d, --dataset: Path to the dataset.
-#  -c, --checkpoint: Path to the checkpoint.
-#  -t, --total-steps: Total number of steps to train.
-#  -s, --checkpoint-steps: Number of steps between checkpoints.
-#  -b, --batch-size: Batch size.
-#  -w, --work-dir: Path to the work directory.
-
 for i in "$@"
 do
 case $i in
@@ -155,6 +144,7 @@ for file in "${DATASET_PATH}"/*.jsonl; do
         fi
     fi
 done
+
 
 echo "DATASETS: ${DATASETS}"
 
