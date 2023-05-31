@@ -81,7 +81,7 @@ def clone_git_repo(data_source, destination_dir):
     )
 
     # Check if the git repository has already been cloned
-    if os.path.exists(os.path.join(destination_dir)):
+    if os.path.exists(os.path.join(destination_dir, ".git")):
         print(f"Git repository already exists at {destination_dir}. Skipping clone.")
         return
 
