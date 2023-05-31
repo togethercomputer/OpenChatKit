@@ -9,6 +9,7 @@ export SHOW_DATA=0
 
 # Parse command line arguments.
 #  -h, --help: Show help message.
+#  -n, --model-name: Name of the model.
 #  -m, --base-model: Path to the base model.
 #  -d, --dataset: Path to the dataset.
 #  -c, --checkpoint: Path to the checkpoint.
@@ -23,13 +24,16 @@ case $i in
     -h|--help)
     echo "Usage: finetune.sh [OPTIONS]"
     echo "Options:"
+    echo "  -n, --model-name: Name of the model."
+    echo "  -w, --work-path: Path to the work directory. Used to define default paths for "
+    echo "      base model, dataset, and checkpoint."
     echo "  -m, --base-model-path: Path to the base model."
     echo "  -d, --dataset-path: Path to the dataset."
     echo "  -c, --checkpoint-path: Path to the checkpoint."
     echo "  -t, --total-steps: Total number of steps to train."
     echo "  -s, --checkpoint-steps: Number of steps between checkpoints."
+    echo "  -b, --batch-size: Batch size."
     echo "  -h, --help: Show help message."
-    echo "  -w, --work-path: Path to the work directory. Used to define default paths for base model, dataset, and checkpoint."
     exit 0
     ;;
     -w=*|--work-path=*)
@@ -85,6 +89,12 @@ case $i in
 esac
 done
 
+# Check if the model name has been set. If not, exit with error.
+if [ -z "${FINETUNE_MODEL_NAME}" ]; then
+    echo "Error: Model name is not set. Specify the model name via CLI arguments (-n, --model-name) or the environment variable FINETUNE_MODEL_NAME."
+    exit 1
+fi
+
 # Set the base model path. If FINETUNE_BASE_MODEL is set, use that as the the
 # base model path. Otherwise, if FINETUNE_WORK_DIR is set, use that to define
 # base model path. Otherwise, use the default base model path.
@@ -127,8 +137,9 @@ else
     exit 1
 fi
 
-TOTAL_STEPS=${FINETUNE_TOTAL_STEPS:-20000}
-CHECKPOINT_STEPS=${FINETUNE_CHECKPOINT_STEPS:-100}
+TOTAL_STEPS=${FINETUNE_TOTAL_STEPS:-100}
+# By default checkpoints are disabled
+CHECKPOINT_STEPS=${FINETUNE_CHECKPOINT_STEPS:-0}
 BATCH_SIZE=${FINETUNE_BATCH_SIZE:-32}
 
 # Initialize datasets with files in the DATASET_PATH directory
@@ -189,7 +200,6 @@ num_gpus=${#gpu_ids_array[@]}
 
 # Create an array to store the process IDs
 pids=()
-
 
 # Iterate over the range of GPU IDs
 for ((i=0; i<num_gpus; i++)); do
