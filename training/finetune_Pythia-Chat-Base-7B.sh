@@ -7,78 +7,39 @@ export MODEL_NAME=Pythia-Chat-Base-7B
 
 export SHOW_DATA=0
 
-# Set the base model path. If FINETUNE_BASE_MODEL is set, use that as the the
-# base model path. Otherwise, if FINETUNE_WORK_DIR is set, use that to define
-# base model path. Otherwise, use the default base model path.
-if [ -n "${FINETUNE_BASE_MODEL}" ]; then
-    BASE_MODEL="${FINETUNE_BASE_MODEL}"
-elif [ -n "${FINETUNE_WORK_DIR}" ]; then
-    # Use the work directory to define the base model path.
-    BASE_MODEL="${FINETUNE_WORK_DIR}/model"
-else
-    # Use the default base model path. This assumes that this file is inside
-    # the OCK repository.
-    BASE_MODEL="${DIR}/../pretrained/Pythia-6.9B-deduped/EleutherAI_pythia-6.9b-deduped/"
-fi
-
-# Set the dataset path. If FINETUNE_DATASET_PATH is set, use that as the the
-# dataset path. Otherwise, if FINETUNE_WORK_DIR is set, use that to define
-# dataset path. Otherwise, use the default dataset path.
-if [ -n "${FINETUNE_DATASET_PATH}" ]; then
-    DATASET_PATH="${FINETUNE_DATASET_PATH}"
-elif [ -n "${FINETUNE_WORK_DIR}" ]; then
-    # Use the work directory to define the dataset path.
-    DATASET_PATH="${FINETUNE_WORK_DIR}/data"
-else
-    # Use the default dataset path. This assumes that this file is inside
-    # the OCK repository.
-    DATASET_PATH="${DIR}/../data/OIG/files"
-fi
-
-# Set the checkpoint path. If FINETUNE_CHECKPOINT_PATH is set, use that as the
-# the checkpoint path. Otherwise, if FINETUNE_WORK_DIR is set, use that to 
-# define checkpoint path. Otherwise, use the default checkpoint path.
-if [ -n "${FINETUNE_CHECKPOINT_PATH}" ]; then
-    CHECKPOINT_PATH="${FINETUNE_CHECKPOINT_PATH}"
-elif [ -n "${FINETUNE_WORK_DIR}" ]; then
-    # Use the work directory to define the checkpoint path.
-    CHECKPOINT_PATH="${FINETUNE_WORK_DIR}/checkpoints"
-else
-    # Use the default checkpoint path. This assumes that this file is inside
-    # the OCK repository.
-    CHECKPOINT_PATH="${DIR}/../model_ckpts/${MODEL_NAME}"
-fi
+BASE_MODEL="${DIR}/../pretrained/Pythia-6.9B-deduped/EleutherAI_pythia-6.9b-deduped/"
 
 TOTAL_STEPS=${FINETUNE_TOTAL_STEPS:-20000}
 CHECKPOINT_STEPS=${FINETUNE_CHECKPOINT_STEPS:-100}
+CHECKPOINT_PATH=${FINETUNE_CHECKPOINT_PATH:-"${DIR}/../model_ckpts/${MODEL_NAME}"}
 
 DATASETS="\
-${DATASET_PATH}/unified_ni.jsonl:0.2,\
-${DATASET_PATH}/unified_p3.jsonl:0.5,\
-${DATASET_PATH}/unified_flan.jsonl:0.2,\
-${DATASET_PATH}/unified_chip2.jsonl:0.01,\
-${DATASET_PATH}/unified_rallio_safety_and_prosocial.jsonl:0.1,\
-${DATASET_PATH}/unified_soda_dialog.jsonl:0.1,\
-${DATASET_PATH}/unified_unifiedskg_instructions.jsonl:0.1,\
-${DATASET_PATH}/unified_merged_code_xp3.jsonl:0.1,\
-${DATASET_PATH}/unified_oscar_en_sample_dialog.jsonl:0.1,\
-${DATASET_PATH}/unified_ul2_plus_oscar_en_sample_dialog.jsonl:0.1,\
-${DATASET_PATH}/unified_multi_news.jsonl:0.05,\
-${DATASET_PATH}/unified_openai_summarize_tldr.jsonl:0.05,\
-${DATASET_PATH}/unified_squad_v2.jsonl:0.01,\
-${DATASET_PATH}/unified_nq.jsonl:0.01,\
-${DATASET_PATH}/unified_poetry_instructions.jsonl:0.01,\
-${DATASET_PATH}/unified_sqlv2.jsonl:0.01,\
-${DATASET_PATH}/unified_unnatural_instructions.jsonl:0.01,\
-${DATASET_PATH}/unified_conv_finqa.jsonl:0.01,\
-${DATASET_PATH}/unified_essays.jsonl:0.01,\
-${DATASET_PATH}/unified_plot_screenplay_books_dialog.jsonl:0.01,\
-${DATASET_PATH}/unified_grade_school_math_instructions.jsonl:0.01,\
-${DATASET_PATH}/unified_mathqa_flanv2_kojma_cot.jsonl:0.01,\
-${DATASET_PATH}/unified_joke_explanations.jsonl:0.01,\
-${DATASET_PATH}/unified_cuad.jsonl:0.01,\
-${DATASET_PATH}/unified_abstract_infill.jsonl:0.1,\
-${DATASET_PATH}/unified_image_prompts_instructions.jsonl:0.01 \
+${DIR}/../data/OIG/files/unified_ni.jsonl:0.2,\
+${DIR}/../data/OIG/files/unified_p3.jsonl:0.5,\
+${DIR}/../data/OIG/files/unified_flan.jsonl:0.2,\
+${DIR}/../data/OIG/files/unified_chip2.jsonl:0.01,\
+${DIR}/../data/OIG/files/unified_rallio_safety_and_prosocial.jsonl:0.1,\
+${DIR}/../data/OIG/files/unified_soda_dialog.jsonl:0.1,\
+${DIR}/../data/OIG/files/unified_unifiedskg_instructions.jsonl:0.1,\
+${DIR}/../data/OIG/files/unified_merged_code_xp3.jsonl:0.1,\
+${DIR}/../data/OIG/files/unified_oscar_en_sample_dialog.jsonl:0.1,\
+${DIR}/../data/OIG/files/unified_ul2_plus_oscar_en_sample_dialog.jsonl:0.1,\
+${DIR}/../data/OIG/files/unified_multi_news.jsonl:0.05,\
+${DIR}/../data/OIG/files/unified_openai_summarize_tldr.jsonl:0.05,\
+${DIR}/../data/OIG/files/unified_squad_v2.jsonl:0.01,\
+${DIR}/../data/OIG/files/unified_nq.jsonl:0.01,\
+${DIR}/../data/OIG/files/unified_poetry_instructions.jsonl:0.01,\
+${DIR}/../data/OIG/files/unified_sqlv2.jsonl:0.01,\
+${DIR}/../data/OIG/files/unified_unnatural_instructions.jsonl:0.01,\
+${DIR}/../data/OIG/files/unified_conv_finqa.jsonl:0.01,\
+${DIR}/../data/OIG/files/unified_essays.jsonl:0.01,\
+${DIR}/../data/OIG/files/unified_plot_screenplay_books_dialog.jsonl:0.01,\
+${DIR}/../data/OIG/files/unified_grade_school_math_instructions.jsonl:0.01,\
+${DIR}/../data/OIG/files/unified_mathqa_flanv2_kojma_cot.jsonl:0.01,\
+${DIR}/../data/OIG/files/unified_joke_explanations.jsonl:0.01,\
+${DIR}/../data/OIG/files/unified_cuad.jsonl:0.01,\
+${DIR}/../data/OIG/files/unified_abstract_infill.jsonl:0.1,\
+${DIR}/../data/OIG/files/unified_image_prompts_instructions.jsonl:0.01 \
 "
 
 ARGS="--model-name ${BASE_MODEL} \
@@ -103,45 +64,22 @@ ARGS="--model-name ${BASE_MODEL} \
 --dp-mode allreduce \
 --pp-mode gpipe --profiling no-profiling"
 
-# Function to handle SIGINT signal
-function handle_sigint {
-    echo "Received SIGINT. Killing all processes..."
-    # Kill all child processes
-    for pid in ${pids[@]}; do
-        kill $pid
-    done
-    exit 1
-}
 
-# Retrieve GPU IDs using nvidia-smi command
-gpu_ids=$(nvidia-smi --query-gpu=index --format=csv,noheader | awk -F',' '{print $1}' | tr '\n' ' ')
-IFS=' ' read -ra gpu_ids_array <<< "$gpu_ids"
-num_gpus=${#gpu_ids_array[@]}
-
-# Create an array to store the process IDs
-pids=()
-
-# Trap the SIGINT signal and call the handler function
-trap handle_sigint SIGINT
-
-# Iterate over the range of GPU IDs
-for ((i=0; i<num_gpus; i++)); do
-    # Get the current CUDA ID
-    cuda_id=${gpu_ids_array[i]}
-
-    # Launch the process with CUDA ID and rank
-    python ${DIR}/dist_clm_train.py $(echo ${ARGS}) --cuda-id ${cuda_id} --rank ${i} &
-
-    # Store the process ID in the array
-    pid=$!
-    pids+=(${pid})
-    echo "Launching rank ${i} on GPU ${cuda_id} with PID ${pid}"
-done
-
-# Wait for all processes to finish
-for pid in ${pids[@]}; do
-    wait $pid
-done
-
-# Print a message when all processes have finished
-echo "All training processes have finished."
+(trap 'kill 0' SIGINT; \
+python ${DIR}/dist_clm_train.py $(echo ${ARGS}) --cuda-id 0 --rank 0 \
+    & \
+python ${DIR}/dist_clm_train.py $(echo ${ARGS}) --cuda-id 1 --rank 1 \
+    & \
+python ${DIR}/dist_clm_train.py $(echo ${ARGS}) --cuda-id 2 --rank 2 \
+    & \
+python ${DIR}/dist_clm_train.py $(echo ${ARGS}) --cuda-id 3 --rank 3 \
+    & \
+python ${DIR}/dist_clm_train.py $(echo ${ARGS}) --cuda-id 4 --rank 4 \
+    & \
+python ${DIR}/dist_clm_train.py $(echo ${ARGS}) --cuda-id 5 --rank 5 \
+    & \
+python ${DIR}/dist_clm_train.py $(echo ${ARGS}) --cuda-id 6 --rank 6 \
+    & \
+python ${DIR}/dist_clm_train.py $(echo ${ARGS}) --cuda-id 7 --rank 7 \
+    & \
+wait)
