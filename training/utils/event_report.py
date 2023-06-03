@@ -151,7 +151,7 @@ def main():
     event_reporter.report(object=args.object,
                           message=args.message,
                           event_type=args.event_type,
-                          level=args.event_level,
+                          level=args.level,
                           checkpoint_path=args.checkpoint_path,
                           model_path=args.model_path,
                           param_count=args.param_count,
@@ -167,7 +167,7 @@ def main():
 #     -M, --model_path <S3 model path>
 #     -p, --param_count <number of parameters>
 #     -t, --token_count <number of tokens>
-#     -l, --event_level <event level>
+#     -l, --level <event level>
 #     -m, --message <event message>
 if __name__ == '__main__':
     main()
