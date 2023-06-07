@@ -75,7 +75,7 @@ def train_loop(args, pipe, device, train_data_loader, test_data_loader):
     
     print('training starts......')
 
-    envent_reporter = EventReporter(host=args.event_host, auth_token=args.event_auth_token, job_id=args.job_id)
+    event_reporter = EventReporter(host=args.event_host, auth_token=args.event_auth_token, job_id=args.job_id)
     if not event_reporter.is_enabled():
         event_reporter = None
 
