@@ -141,9 +141,9 @@ class EventReporter:
             "message": message,
             "type": event_type
         }
-        if checkpoint_path is not None:
+        if checkpoint_path is not None and len(checkpoint_path) > 0:
             event["checkpoint_path"] = checkpoint_path
-        if model_path is not None:
+        if model_path is not None and len(model_path) > 0:
             event["model_path"] = model_path
         if param_count is not None:
             event["param_count"] = param_count
