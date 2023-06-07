@@ -92,21 +92,43 @@ class EventReporter:
         
         return True
 
+    # Report an event to the event log REST service.
+    # The event will be reported to the event log REST service via POST at:
+    # http://<endpoint>:<port>/v1/internal/fine-tunes/<job_id>/event
+    # with Bearer authorization tokens.
+    # The ouput formate is a JSON object with the following fields:
+    # - "object": object type to be reported. Supported object types are given by
+    #   `supported_object_types`
+    # - "created_at": The creation timestamp for the event. If not specified, the
+    #   current time will be used.
+    # - "level": Event level. Supported event levels are given by `supported_event_levels`
+    # - "message": Event message.
+    # - "type": Event type. Supported event types are given by `supported_event_types`
+    # - "param_count": Report the number of model parameters. (optional)
+    # - "token_count": Report the number of tokens in the training data. (optional)
+    # - "checkpoint_path": The path to a checkpoint file(s) (optional)
+    # - "model_path": The path to model file(s) (optional)
+    # - "requires_is_enabled": When true, verify that is_enabled to return true 
+    #   and raises an exception if it does not. When false, this function silently
+    #   exits without error. (optional)
     def report(self, object, message, event_type,
                level=LEVEL_INFO, checkpoint_path=None,
-               model_path=None, param_count=None, token_count=None):
+               model_path=None, param_count=None, token_count=None, requires_is_enabled=True):
 
-        # Validate the host.
-        if self.host is None:
-            raise ValueError("Host is required")
-        
-        # Validate the authorization token.
-        if self.auth_token is None:
-            raise ValueError("Authorization token is required")
-        
-        # Validate the job ID.
-        if self.job_id is None:
-            raise ValueError("Job ID is required")
+        if requires_is_enabled:
+            # Validate the host.
+            if self.host is None:
+                raise ValueError("Host is required")
+            
+            # Validate the authorization token.
+            if self.auth_token is None:
+                raise ValueError("Authorization token is required")
+            
+            # Validate the job ID.
+            if self.job_id is None:
+                raise ValueError("Job ID is required")
+        elif not self.is_enabled():
+            return
         
         # Get the creation timestamp.
         created_at = time.time()
