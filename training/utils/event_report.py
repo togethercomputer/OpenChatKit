@@ -78,7 +78,7 @@ class EventReporter:
         self.job_id = job_id
 
     def __init__(self, args):
-        self.host = args.host
+        self.host = args.event_host
         self.auth_token = args.auth_token
         self.job_id = args.job_id
 
