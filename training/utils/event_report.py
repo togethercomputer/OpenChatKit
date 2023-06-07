@@ -22,44 +22,88 @@
 import argparse
 import json
 import requests
+import sys
 import time
 
 class EventReporter:
 
+    # Event type constants
+    EVENT_TYPE_JOB_START = "JOB_START"
+    EVENT_TYPE_MODEL_DOWNLOAD_COMPLETE = "MODEL_DOWNLOAD_COMPLETE"
+    EVENT_TYPE_TRAINING_DATA_DOWNLOAD_COMPLETE = "TRAINING_DATA_DOWNLOAD_COMPLETE"
+    EVENT_TYPE_TRAINING_START = "TRAINING_START"
+    EVENT_TYPE_CHECKPOINT_SAVE = "CHECKPOINT_SAVE"
+    EVENT_TYPE_EPOCH_COMPLETE = "EPOCH_COMPLETE"
+    EVENT_TYPE_TRAINING_COMPLETE = "TRAINING_COMPLETE"
+    EVENT_TYPE_JOB_COMPLETE = "JOB_COMPLETE"
+    EVENT_TYPE_JOB_ERROR = "JOB_ERROR"
+
     supported_event_types = [
-        "JOB_START",
-        "MODEL_DOWNLOAD_COMPLETE",
-        "TRAINING_DATA_DOWNLOAD_COMPLETE",
-        "TRAINING_START",
-        "EPOCH_COMPLETE",
-        "TRAINING_COMPLETE",
-        "JOB_COMPLETE",
-        "JOB_ERROR",
+        EVENT_TYPE_JOB_START,
+        EVENT_TYPE_MODEL_DOWNLOAD_COMPLETE,
+        EVENT_TYPE_TRAINING_DATA_DOWNLOAD_COMPLETE,
+        EVENT_TYPE_TRAINING_START,
+        EVENT_TYPE_CHECKPOINT_SAVE,
+        EVENT_TYPE_EPOCH_COMPLETE,
+        EVENT_TYPE_TRAINING_COMPLETE,
+        EVENT_TYPE_JOB_COMPLETE,
+        EVENT_TYPE_JOB_ERROR,
     ]
+
+    # Event level constants
+    LEVEL_INFO = "Info"
+    LEVEL_WARNING = "Warning"
+    LEVEL_ERROR = "Error"
 
     supported_event_levels = [
-        "Info",
-        "Warning",
-        "Error",
+        LEVEL_INFO,
+        LEVEL_WARNING,
+        LEVEL_ERROR,
     ]
 
+    # Object type constants
+    OBJECT_FINE_TUNE = "fine-tune"
+
     supported_object_types = [
-        "fine-tune",
+        OBJECT_FINE_TUNE,
     ]
 
     object_type_to_endpoint = {
         "fine-tune": "fine-tunes",
-        "file": "files",
     }
 
-    def __init__(self, url, auth_token, job_id):
-        self.url = url
+    def __init__(self, host=None, auth_token=None, job_id=None):
+        self.host = host
         self.auth_token = auth_token
         self.job_id = job_id
 
+    def __init__(self, args):
+        self.host = args.host
+        self.auth_token = args.auth_token
+        self.job_id = args.job_id
+
+    def is_enabled(self) -> bool:
         # Validate the URL.
         if self.url is None:
-            raise ValueError("URL is required")
+            return False
+        
+        # Validate the authorization token.
+        if self.auth_token is None:
+            return False
+        
+        # Validate the job ID.
+        if self.job_id is None:
+            return False
+        
+        return True
+
+    def report(self, object, message, event_type,
+               level=LEVEL_INFO, checkpoint_path=None,
+               model_path=None, param_count=None, token_count=None):
+
+        # Validate the URL.
+        if self.host is None:
+            raise ValueError("Host is required")
         
         # Validate the authorization token.
         if self.auth_token is None:
@@ -68,11 +112,7 @@ class EventReporter:
         # Validate the job ID.
         if self.job_id is None:
             raise ValueError("Job ID is required")
-
-
-    def report(self, object, message, event_type,
-               level=supported_event_levels[0], checkpoint_path=None,
-               model_path=None, param_count=None, token_count=None):
+        
         # Get the creation timestamp.
         created_at = time.time()
         
@@ -121,30 +161,42 @@ class EventReporter:
             "Authorization": f"Bearer {self.auth_token}",
             "Content-Type": "application/json"
         }
-        endpoint = f"{self.url}/v1/internal/{self.object_type_to_endpoint[object]}/{self.job_id}/event"
+        endpoint = f"{self.host}/v1/internal/{self.object_type_to_endpoint[object]}/{self.job_id}/event"
         response = requests.post(endpoint, headers=headers, data=event_str)
         if response.status_code != 200:
             raise ValueError(f"Failed to send event to event log REST service: {response.text}")
+        
+def add_entry_reporter_arguments(parser):
+    parser.add_argument('--event-host', type=str, required=False,
+                        metavar='endpoint:port', help='Event reporting entrypoint URL')
+    parser.add_argument('--event-auth-token', type=str, required=False,
+                        help='Bearer authorization token')
+
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-u', '--event_url', type=str, required=True, help='endpoint:port')
-    parser.add_argument('-a', '--auth_token', type=str, required=True, help='Bearer authorization token')
-    parser.add_argument('-j', '--job_id', type=str, required=True, help='job id')
-    parser.add_argument('-o', '--object', type=str, required=True, help='object type')
+    parser.add_argument('-u', '--event-host', type=str, required=True,
+                        metavar='<scheme><hostname>:<port>',
+                        help='Event reporting entrypoint URL (e.g. https://127.0.0.1:8895)')
+    parser.add_argument('-a', '--auth-token', type=str, required=True,
+                        help='Bearer authorization token')
+    parser.add_argument('-j', '--job-id', type=str, required=True, help='job id')
+    parser.add_argument('-o', '--object', type=str, required=True, help='object type',
+                        metavar="|".join(EventReporter.supported_object_types))
     parser.add_argument('-m', '--message', type=str, required=True, help='event message')
-    parser.add_argument('-e', '--event_type', type=str, required=True, help='event type')
-    parser.add_argument('-c', '--created_at', type=str, required=False, help='timestamp')
-    parser.add_argument('-C', '--checkpoint_path', type=str, required=False, help='S3 checkpoint path')
-    parser.add_argument('-M', '--model_path', type=str, required=False, help='S3 model path')
-    parser.add_argument('-p', '--param_count', type=int, required=False, help='number of parameters')
-    parser.add_argument('-t', '--token_count', type=int, required=False, help='number of tokens')
-    parser.add_argument('-l', '--level', type=str, required=False, help='event level (Info, Warning, Error)')
-    parser.add_argument('-h', '--help', action='help', help='show this help message and exit')
+    parser.add_argument('-e', '--event-type', type=str, required=True, help='event type',
+                        metavar="|".join(EventReporter.supported_event_types))
+    parser.add_argument('-c', '--created-at', type=str, required=False, help='timestamp')
+    parser.add_argument('-C', '--checkpoint-path', type=str, required=False, help='S3 checkpoint path')
+    parser.add_argument('-M', '--model-path', type=str, required=False, help='S3 model path')
+    parser.add_argument('-p', '--param-count', type=int, required=False, help='number of parameters')
+    parser.add_argument('-t', '--token-count', type=int, required=False, help='number of tokens')
+    parser.add_argument('-l', '--level', type=str, required=False, help='event level',
+                        metavar="|".join(EventReporter.supported_event_levels))
     args = parser.parse_args()
 
     # Create the event reporter.
-    event_reporter = EventReporter(url=args.event_url,
+    event_reporter = EventReporter(host=args.event_host,
                                    auth_token=args.auth_token,
                                    job_id=args.job_id)
     
@@ -157,17 +209,45 @@ def main():
                           param_count=args.param_count,
                           token_count=args.token_count)
 
-# Usage: 
-# python3 event_report.py \
-#     -u, --url <endpoint>:<port> \
-#     -a, --auth_token <authorization token>
-#     -j, --job_id <job_id> \
-#     -o, --object <object type>
-#     -C, --checkpoint_path <S3 checkpoint path>
-#     -M, --model_path <S3 model path>
-#     -p, --param_count <number of parameters>
-#     -t, --token_count <number of tokens>
-#     -l, --level <event level>
-#     -m, --message <event message>
+#usage: event_report.py [-h] -u <scheme><hostname>:<port> -a AUTH_TOKEN -j
+#                       JOB_ID -o fine-tune -m MESSAGE -e
+#                       JOB_START|MODEL_DOWNLOAD_COMPLETE|TRAINING_DATA_DOWNLOAD_COMPLETE|TRAINING_START|CHECKPOINT_SAVE|EPOCH_COMPLETE|TRAINING_COMPLETE|JOB_COMPLETE|JOB_ERROR
+#                       [-c CREATED_AT] [-C CHECKPOINT_PATH] [-M MODEL_PATH]
+#                       [-p PARAM_COUNT] [-t TOKEN_COUNT]
+#                       [-l Info|Warning|Error]
+#
+#optional arguments:
+#  -h, --help            show this help message and exit
+#  -u, --event-host <scheme><hostname>:<port>
+#                        Event reporting entrypoint URL (e.g.
+#                        https://127.0.0.1:8895)
+#  -a, --auth-token AUTH_TOKEN
+#                        Bearer authorization token
+#  -j, --job-id JOB_ID
+#                        job id
+#  -o, --object fine-tune
+#                        object type
+#  -m, --message MESSAGE
+#                        event message
+#  -e, --event-type JOB_START|MODEL_DOWNLOAD_COMPLETE|TRAINING_DATA_DOWNLOAD_COMPLETE|TRAINING_START|CHECKPOINT_SAVE|EPOCH_COMPLETE|TRAINING_COMPLETE|JOB_COMPLETE|JOB_ERROR
+#                        event type
+#  -c, --created-at CREATED_AT
+#                        timestamp
+#  -C, --checkpoint-path CHECKPOINT_PATH
+#                        S3 checkpoint path
+#  -M, --model-path MODEL_PATH
+#                        S3 model path
+#  -p, --param-count PARAM_COUNT
+#                        number of parameters
+#  -t, --token-count TOKEN_COUNT
+#                        number of tokens
+#  -l, --level Info|Warning|Error
+#                        event level
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except Exception as e:
+        print(e)
+        sys.exit(1)
+    
+    sys.exit(0)

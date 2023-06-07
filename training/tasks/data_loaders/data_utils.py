@@ -406,3 +406,23 @@ def get_ul2r_train_data_loader(args, tokenizer, num_workers=1, state_dict=None):
     print('ul2r dataloader init done.')
     
     return train_data_loader
+
+# Compute the number of tokens in a dataset using a Torch tokenizer
+# - dataset: a set of jsonl files
+# - tokenizer: a Torch tokenizer
+# - return: the sum of tokens from the the text field of each sample in the dataset
+def get_dataset_token_count(dataset, tokenizer) -> int:
+    token_count = 0
+
+    if dataset is  None:
+        return token_count
+
+    for jsonl_file in dataset.task_names:
+        with open(jsonl_file, "r") as file:
+            for line in file:
+                data = json.loads(line)
+                text = data["text"]
+                encoded_input = tokenizer.encode(text, add_special_tokens=True)
+                token_count += len(encoded_input)
+
+    return token_count
