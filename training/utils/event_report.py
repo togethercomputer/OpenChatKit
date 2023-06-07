@@ -77,11 +77,6 @@ class EventReporter:
         self.auth_token = auth_token
         self.job_id = job_id
 
-    def __init__(self, args):
-        self.host = args.event_host
-        self.auth_token = args.auth_token
-        self.job_id = args.job_id
-
     def is_enabled(self) -> bool:
         # Validate the URL.
         if self.url is None:
