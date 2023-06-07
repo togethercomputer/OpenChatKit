@@ -79,7 +79,7 @@ class EventReporter:
 
     def is_enabled(self) -> bool:
         # Validate the URL.
-        if self.url is None:
+        if self.host is None:
             return False
         
         # Validate the authorization token.
@@ -96,7 +96,7 @@ class EventReporter:
                level=LEVEL_INFO, checkpoint_path=None,
                model_path=None, param_count=None, token_count=None):
 
-        # Validate the URL.
+        # Validate the host.
         if self.host is None:
             raise ValueError("Host is required")
         
