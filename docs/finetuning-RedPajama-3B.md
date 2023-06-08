@@ -89,3 +89,17 @@ output_str = tokenizer.decode(token)
 print(output_str)
 
 ```
+
+Please note the above finetuning takes around 60GB VRAM to fit everything in to GPU, and may take even more to fit training data. If you do not have such GPUs, we also provide the low-rank finetuning scripts that works with 14GB VRAM. Here’re the steps to get started.
+
+* Clone the OpenChatKit repo, install dependencies and prepare the dataset. These steps are the same as full fine-tuning.
+
+* The sample low-rank finetuning script is at /training/lora/redpajama-incite-chat-3b.py, please modify this script to accommodate your own training data and preferred configuration.
+
+* Then you can start low-rank finetuning by running this script.
+
+Once the finetuning is finished, the resulting low-rank adapter will be saved to /outputs, and you can do inference with the following script.
+
+```
+python training/lora/redpajama-incite-chat-3b_inference.py
+```
