@@ -17,7 +17,7 @@ In this repo, you'll find code for:
   * [Downloading training data and the base model](#downloading-training-data-and-the-base-model)
   * [(Optional) 8bit Adam](#optional-8bit-adam)
   * [Training the model](#training-the-model)
-  * [Converting weights to Huggingface format](#converting-weights-to-huggingface-format)
+  * [Converting weights to Hugging Face format](#converting-weights-to-hugging-face-format)
   * [Testing the new model](#testing-the-new-model)
 - [Monitoring](#monitoring)
   * [Loguru](#loguru)
@@ -32,9 +32,9 @@ In this repo, you'll find code for:
 
 In this tutorial, you will download Pythia-Chat-Base-7B, an instruction-tuned language model, and run some some inference requests against it using a command-line tool.
 
-Pythia-Chat-Base-7B is a 7B-parameter fine-tuned variant of Pythia-6.9B-deduped from Eleuther AI. Pre-trained weights for this model are available on Huggingface as [togethercomputer/Pythia-Chat-Base-7B](https://huggingface.co/togethercomputer/Pythia-Chat-Base-7B) under an Apache 2.0 license.
+Pythia-Chat-Base-7B is a 7B-parameter fine-tuned variant of Pythia-6.9B-deduped from Eleuther AI. Pre-trained weights for this model are available on Hugging Face as [togethercomputer/Pythia-Chat-Base-7B](https://huggingface.co/togethercomputer/Pythia-Chat-Base-7B) under an Apache 2.0 license.
 
-More details can be found on the model card for [Pythia-Chat-Base-7B](https://huggingface.co/togethercomputer/Pythia-Chat-Base-7B) on Huggingface.
+More details can be found on the model card for [Pythia-Chat-Base-7B](https://huggingface.co/togethercomputer/Pythia-Chat-Base-7B) on Hugging Face.
 
 ## Requirements
 
@@ -110,7 +110,7 @@ This tutorial walks through reproducing the Pythia-Chat-Base-7B model by fine-tu
 
 ## Downloading training data and the base model
 
-The chat model was trained on the [OIG](https://huggingface.co/datasets/laion/OIG) dataset built by [LAION](https://laion.ai/), [Together](https://www.together.xyz/), and [Ontocord.ai](https://www.ontocord.ai/). To download the dataset from Huggingface run the command below from the root of the repo.
+The chat model was trained on the [OIG](https://huggingface.co/datasets/laion/OIG) dataset built by [LAION](https://laion.ai/), [Together](https://www.together.xyz/), and [Ontocord.ai](https://www.ontocord.ai/). To download the dataset from Hugging Face run the command below from the root of the repo.
 
 ```shell
 python data/OIG/prepare.py
@@ -148,9 +148,9 @@ As the training loop runs, checkpoints are saved to the `model_ckpts` directory 
 
 Please see [the training README](training/README.md) for more details about customizing the training run.
 
-## Converting weights to Huggingface format
+## Converting weights to Hugging Face format
 
-Before you can use this model to perform inference, it must be converted to the Huggingface format. Run this command from the root of the repo to do so.
+Before you can use this model to perform inference, it must be converted to the Hugging Face format. Run this command from the root of the repo to do so.
 
 ```shell
 mkdir huggingface_models \
