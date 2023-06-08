@@ -105,8 +105,7 @@ if __name__ == '__main__':
     assert args.ckpt_path is not None
     assert args.save_path is not None
     
-    if not os.path.exists(args.save_path):
-        os.mkdir(args.save_path)
+    os.makedirs(args.save_path, exist_ok=True)
 
     print('loading config...')
     config = AutoConfig.from_pretrained(args.config_name)

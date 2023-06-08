@@ -4,7 +4,7 @@ import random
 import numpy as np
 import torch
 import torch.autograd.profiler as profiler
-from tasks.data_loaders.data_utils import get_train_data_loader, get_eval_data_loader
+from tasks.data_loaders.data_utils import get_train_data_loader, get_eval_data_loader, get_dataset_token_count
 from modules.utils import gpt_loss_func
 from modules.tokenizer import build_tokenizer
 from pipeline_parallel.dist_pp_utils import get_pp_module
@@ -15,6 +15,7 @@ import datasets
 from utils.dist_args_utils import *
 from utils.dist_checkpoint_utils import *
 from utils.logging_utils import *
+from utils.event_report import *
 from comm.comm_utils import *
 
 
@@ -74,6 +75,8 @@ def train_loop(args, pipe, device, train_data_loader, test_data_loader):
     
     print('training starts......')
 
+    event_reporter = EventReporter(host=args.event_host, auth_token=args.event_auth_token, job_id=args.job_id)
+
     pipe.model.train() # Flag .training to True to enable Dropout
     
     use_dp = (args.world_size != args.pipeline_group_size)
@@ -96,6 +99,22 @@ def train_loop(args, pipe, device, train_data_loader, test_data_loader):
     do_sync_before_save = (args.dp_mode in ['local'] and use_dp)
     
     if get_pipeline_parallel_rank() == 0 and dp_rank == 0:
+
+        if event_reporter is not None:
+
+            # Get the number of tokens in the dataset
+            num_tokens = get_dataset_token_count(train_data_loader, pipe.tokenizer)
+
+            # Get the number of model parameters
+            num_params = sum(p.numel() for p in pipe.model.parameters() if p.requires_grad)
+
+            # Report training start
+            event_reporter.report(object=EventReporter.OBJECT_FINE_TUNE,
+                                  message=f"Training started for model {args.model_name}",
+                                  event_type=EventReporter.EVENT_TYPE_TRAINING_START,
+                                  num_params=num_params,
+                                  num_tokens=num_tokens,
+                                  requires_is_enabled=False)
         
         for i, data in enumerate(train_data_loader):
             # if i < pipe.global_step:
@@ -124,6 +143,12 @@ def train_loop(args, pipe, device, train_data_loader, test_data_loader):
             
             labels = input_ids.clone()
             current_iter_time = pipe.sgd_iter(input_ids, labels, loss_func=gpt_loss_func)
+
+            if event_reporter is not None:
+                event_reporter.report(object=EventReporter.OBJECT_FINE_TUNE,
+                                      message=f"Epoch competed for step {pipe.global_step}",
+                                      event_type=EventReporter.EPOCH_COMPLETED,
+                                      requires_is_enabled=False)
             
             if args.evaluation_steps > 0 and pipe.global_step % args.evaluation_steps == 0:
                 test_loop(args, pipe, device, test_data_loader)
@@ -133,6 +158,12 @@ def train_loop(args, pipe, device, train_data_loader, test_data_loader):
                     pipe.dp_optim.allreduce_parameters()
                 if dp_rank == 0:
                     save_checkpoint(pipe, args)
+
+                    if event_reporter is not None:
+                        event_reporter.report(object=EventReporter.OBJECT_FINE_TUNE,
+                                              message=f"checkpoint saved for step {pipe.global_step}",
+                                              event_type=EventReporter.CHECKPOINT_SAVED,
+                                              requires_is_enabled=False)
                 if do_sync_before_save:
                     pipe.dp_optim.rollback_parameters()
             
@@ -220,6 +251,7 @@ def main():
     add_training_hyper_parameter_arguments(parser)
     add_mixed_precision_arguments(parser)
     add_parallel_schema_arguments(parser)
+    add_entry_reporter_arguments(parser)
     parser.add_argument('--model-name', type=str, default='gpt2', metavar='S',
                         help='model name or path')
     parser.add_argument('--tokenizer-name', type=str, default='gpt2', metavar='S',

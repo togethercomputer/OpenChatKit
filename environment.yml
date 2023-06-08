@@ -27,3 +27,4 @@ dependencies:
       - transformers==4.21.1
       - wandb==0.13.10
       - zstandard==0.20.0
+      - boto3
