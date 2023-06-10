@@ -15,4 +15,4 @@ model = PeftModel.from_pretrained(model, peft_model_path)
 
 model = model.merge_and_unload()
 
-model.save_pretrained('outputs/redpajama-incite-chat-3b-sample-lowrank/merge')
+model.save_pretrained('outputs/redpajama-incite-chat-3b-sample-lowrank-merged')
