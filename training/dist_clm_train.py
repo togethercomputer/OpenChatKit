@@ -103,17 +103,17 @@ def train_loop(args, pipe, device, train_data_loader, test_data_loader):
         if event_reporter is not None:
 
             # Get the number of tokens in the dataset
-            num_tokens = train_data_loader.dataset.get_dataset_token_count()
+            token_count = train_data_loader.dataset.get_dataset_token_count()
 
             # Get the number of model parameters
-            num_params = sum(p.numel() for p in pipe.model.parameters() if p.requires_grad)
+            param_count = sum(p.numel() for p in pipe.model.parameters() if p.requires_grad)
 
             # Report training start
             event_reporter.report(object=EventReporter.OBJECT_FINE_TUNE,
                                   message=f"Training started for model {args.model_name}",
                                   event_type=EventReporter.EVENT_TYPE_TRAINING_START,
-                                  num_params=num_params,
-                                  num_tokens=num_tokens,
+                                  param_count=param_count,
+                                  token_count=token_count,
                                   requires_is_enabled=False)
         
         for i, data in enumerate(train_data_loader):
