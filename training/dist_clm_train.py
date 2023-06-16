@@ -71,7 +71,7 @@ def test_loop(args, pipe, device, test_data_loader):
     
 
 
-def train_loop(args, pipe, device, train_data_loader, test_data_loader, tokenizer):
+def train_loop(args, pipe, device, train_data_loader, test_data_loader):
     
     print('training starts......')
 
@@ -103,7 +103,7 @@ def train_loop(args, pipe, device, train_data_loader, test_data_loader, tokenize
         if event_reporter is not None:
 
             # Get the number of tokens in the dataset
-            num_tokens = get_dataset_token_count(train_data_loader, tokenizer)
+            num_tokens = train_data_loader.dataset.get_dataset_token_count()
 
             # Get the number of model parameters
             num_params = sum(p.numel() for p in pipe.model.parameters() if p.requires_grad)
@@ -361,7 +361,7 @@ def main():
         pipe.optimizer.reload_model_params()
 
     if args.profiling == 'no-profiling':
-        train_loop(args, pipe, device, train_data_loader, test_data_loader, tokenizer)
+        train_loop(args, pipe, device, train_data_loader, test_data_loader)
     else:
         prefix = './trace_json/gpt3_' + args.pp_mode
         if use_dp:
