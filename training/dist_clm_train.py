@@ -4,7 +4,7 @@ import random
 import numpy as np
 import torch
 import torch.autograd.profiler as profiler
-from tasks.data_loaders.data_utils import get_train_data_loader, get_eval_data_loader, get_dataset_token_count
+from tasks.data_loaders.data_utils import get_train_data_loader, get_eval_data_loader
 from modules.utils import gpt_loss_func
 from modules.tokenizer import build_tokenizer
 from pipeline_parallel.dist_pp_utils import get_pp_module
