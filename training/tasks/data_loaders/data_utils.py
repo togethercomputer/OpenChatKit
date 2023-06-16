@@ -417,12 +417,10 @@ def get_dataset_token_count(dataset, tokenizer) -> int:
     if dataset is  None:
         return token_count
 
-    for jsonl_file in dataset:
-        with open(jsonl_file, "r") as file:
-            for line in file:
-                data = json.loads(line)
-                text = data["text"]
-                encoded_input = tokenizer.encode(text, add_special_tokens=True)
-                token_count += len(encoded_input)
+    for jsonl in dataset:
+        print(jsonl)
+        text = jsonl["text"]
+        encoded_input = tokenizer.encode(text, add_special_tokens=True)
+        token_count += len(encoded_input)
 
     return token_count
