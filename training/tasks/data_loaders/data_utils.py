@@ -417,7 +417,7 @@ def get_dataset_token_count(dataset, tokenizer) -> int:
     if dataset is  None:
         return token_count
 
-    for jsonl_file in dataset.task_names:
+    for jsonl_file in dataset:
         with open(jsonl_file, "r") as file:
             for line in file:
                 data = json.loads(line)
