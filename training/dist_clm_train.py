@@ -147,7 +147,7 @@ def train_loop(args, pipe, device, train_data_loader, test_data_loader):
             if event_reporter is not None:
                 event_reporter.report(object=EventReporter.OBJECT_FINE_TUNE,
                                       message=f"Epoch competed for step {pipe.global_step}",
-                                      event_type=EventReporter.EPOCH_COMPLETED,
+                                      event_type=EventReporter.EVENT_TYPE_EPOCH_COMPLETE,
                                       requires_is_enabled=False)
             
             if args.evaluation_steps > 0 and pipe.global_step % args.evaluation_steps == 0:
@@ -162,7 +162,7 @@ def train_loop(args, pipe, device, train_data_loader, test_data_loader):
                     if event_reporter is not None:
                         event_reporter.report(object=EventReporter.OBJECT_FINE_TUNE,
                                               message=f"checkpoint saved for step {pipe.global_step}",
-                                              event_type=EventReporter.CHECKPOINT_SAVED,
+                                              event_type=EventReporter.EVENT_TYPE_CHECKPOINT_SAVE,
                                               requires_is_enabled=False)
                 if do_sync_before_save:
                     pipe.dp_optim.rollback_parameters()
