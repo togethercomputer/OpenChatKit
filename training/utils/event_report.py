@@ -129,7 +129,7 @@ class EventReporter:
             if self.job_id is None:
                 raise ValueError("Job ID is required")
         elif not self.is_enabled():
-            print("Event reporting is disabled {self.host} {self.auth_token} {self.job_id}")
+            print(f"Event reporting is disabled {self.host} {self.auth_token} {self.job_id}")
             return
         
         # Get the creation timestamp.
