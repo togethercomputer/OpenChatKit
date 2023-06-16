@@ -4,7 +4,7 @@ import random
 import numpy as np
 import torch
 import torch.autograd.profiler as profiler
-from tasks.data_loaders.data_utils import get_train_data_loader, get_eval_data_loader, get_dataset_token_count
+from tasks.data_loaders.data_utils import get_train_data_loader, get_eval_data_loader
 from modules.utils import gpt_loss_func
 from modules.tokenizer import build_tokenizer
 from pipeline_parallel.dist_pp_utils import get_pp_module
@@ -103,17 +103,17 @@ def train_loop(args, pipe, device, train_data_loader, test_data_loader):
         if event_reporter is not None:
 
             # Get the number of tokens in the dataset
-            num_tokens = get_dataset_token_count(train_data_loader, pipe.tokenizer)
+            token_count = train_data_loader.dataset.get_dataset_token_count()
 
             # Get the number of model parameters
-            num_params = sum(p.numel() for p in pipe.model.parameters() if p.requires_grad)
+            param_count = sum(p.numel() for p in pipe.model.parameters() if p.requires_grad)
 
             # Report training start
             event_reporter.report(object=EventReporter.OBJECT_FINE_TUNE,
                                   message=f"Training started for model {args.model_name}",
                                   event_type=EventReporter.EVENT_TYPE_TRAINING_START,
-                                  num_params=num_params,
-                                  num_tokens=num_tokens,
+                                  param_count=param_count,
+                                  token_count=token_count,
                                   requires_is_enabled=False)
         
         for i, data in enumerate(train_data_loader):
@@ -147,7 +147,7 @@ def train_loop(args, pipe, device, train_data_loader, test_data_loader):
             if event_reporter is not None:
                 event_reporter.report(object=EventReporter.OBJECT_FINE_TUNE,
                                       message=f"Epoch competed for step {pipe.global_step}",
-                                      event_type=EventReporter.EPOCH_COMPLETED,
+                                      event_type=EventReporter.EVENT_TYPE_EPOCH_COMPLETE,
                                       requires_is_enabled=False)
             
             if args.evaluation_steps > 0 and pipe.global_step % args.evaluation_steps == 0:
@@ -162,7 +162,7 @@ def train_loop(args, pipe, device, train_data_loader, test_data_loader):
                     if event_reporter is not None:
                         event_reporter.report(object=EventReporter.OBJECT_FINE_TUNE,
                                               message=f"checkpoint saved for step {pipe.global_step}",
-                                              event_type=EventReporter.CHECKPOINT_SAVED,
+                                              event_type=EventReporter.EVENT_TYPE_CHECKPOINT_SAVE,
                                               requires_is_enabled=False)
                 if do_sync_before_save:
                     pipe.dp_optim.rollback_parameters()

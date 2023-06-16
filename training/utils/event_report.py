@@ -113,7 +113,8 @@ class EventReporter:
     #   exits without error. (optional)
     def report(self, object, message, event_type,
                level=LEVEL_INFO, checkpoint_path=None,
-               model_path=None, param_count=None, token_count=None, requires_is_enabled=True):
+               model_path=None, param_count=None, token_count=None, 
+               requires_is_enabled=True):
 
         if requires_is_enabled:
             # Validate the host.
@@ -181,7 +182,8 @@ class EventReporter:
         endpoint = f"{self.host}/v1/internal/{self.object_type_to_endpoint[object]}/{self.job_id}/event"
         response = requests.post(endpoint, headers=headers, data=event_str)
         if response.status_code != 200:
-            raise ValueError(f"Failed to send event to event log REST service: {response.text}")
+            raise ValueError(f"Failed to send event to event log REST service: ({response.status_code}) \"{response.text}\"")
+        print(f"Event reported: {event_str}")
         
 def add_entry_reporter_arguments(parser):
     parser.add_argument('--event-host', type=str, required=False,
