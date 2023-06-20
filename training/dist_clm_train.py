@@ -106,7 +106,7 @@ def train_loop(args, pipe, device, train_data_loader, test_data_loader):
             token_count = train_data_loader.dataset.get_dataset_token_count()
 
             # Get the number of model parameters
-            param_count = sum(p.numel() for p in pipe.model.parameters() if p.requires_grad)
+            param_count = sum(p.numel() for p in pipe.model.parameters())
 
             # Report training start
             event_reporter.report(object=EventReporter.OBJECT_FINE_TUNE,
