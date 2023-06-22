@@ -179,7 +179,7 @@ class EventReporter:
             "Authorization": f"Bearer {self.auth_token}",
             "Content-Type": "application/json"
         }
-        endpoint = f"{self.host}/v1/{self.object_type_to_endpoint[object]}/{self.job_id}/event"
+        endpoint = f"{self.host}/v1/{self.object_type_to_endpoint[object]}/{self.job_id}/events"
         response = requests.post(endpoint, headers=headers, data=event_str)
         if response.status_code != 200:
             raise ValueError(f"Failed to send event to event log REST service: ({response.status_code}) \"{response.text}\"")
