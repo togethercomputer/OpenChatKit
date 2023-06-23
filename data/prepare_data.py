@@ -158,7 +158,7 @@ def download_from_s3(url, destination_dir, access_key_id = None,
             destination_file = os.path.join(destination_dir, base_file)
             if not os.path.exists(destination_file):
                 print(f"Downloading {base_file} ...")
-                bucket.download_file(f'{key_prefix}/{base_file}', destination_file)
+                bucket.download_file(f'/{key_prefix}/{base_file}', destination_file)
             else:
                 print(f"File already exists, skipping {base_file}")
 
