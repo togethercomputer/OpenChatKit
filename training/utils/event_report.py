@@ -132,7 +132,7 @@ class EventReporter:
             return
         
         # Get the creation timestamp.
-        created_at = time.time()
+        created_at = int(time.time())
         
         # Validate the object type.
         if object is None:
@@ -169,9 +169,9 @@ class EventReporter:
         if model_path is not None and len(model_path) > 0:
             event["model_path"] = model_path
         if param_count is not None:
-            event["param_count"] = param_count
+            event["param_count"] = int(param_count)
         if token_count is not None:
-            event["token_count"] = token_count
+            event["token_count"] = int(token_count)
         event_str = json.dumps(event)
 
         # Send the event to the event log REST service.
