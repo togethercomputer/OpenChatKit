@@ -109,7 +109,7 @@ def clone_git_repo(data_source, destination_dir):
 
 # Download all files from an S3 compatible storage service.
 def download_from_s3(url, destination_dir, access_key_id = None,
-                     secret_access_key = None, session_token = None):
+                     secret_access_key = None, session_token = None, debug = False):
     # Get the access key ID and secret access key from the environment variables
     if access_key_id is None:
         access_key_id = os.environ.get('AWS_ACCESS_KEY_ID')
@@ -118,16 +118,21 @@ def download_from_s3(url, destination_dir, access_key_id = None,
     if session_token is None:
         session_token = os.environ.get('AWS_SESSION_TOKEN')
     
-    print(f"access_key_id={access_key_id}")
-    print(f"secret_access_key={secret_access_key}")
-
     # Create an S3 client
     parsed_url = url.split('/')
     endpoint_url = f"{parsed_url[0]}//{parsed_url[2]}"
     bucket_name = parsed_url[3]
     key_prefix = "/".join(parsed_url[4:-1])
     base_file = parsed_url[-1] if not url.endswith('/') else ""
+    
     print(f"endpoint_url={endpoint_url} ...")
+    if debug:
+        print(f"access_key_id={access_key_id}")
+        print(f"secret_access_key={secret_access_key}")
+        print(f"bucket_name={bucket_name}")
+        print(f"key_prefix={key_prefix}")
+        print(f"base_file={base_file}")
+
     s3 = boto3.resource('s3',
         endpoint_url = endpoint_url,
         aws_access_key_id = access_key_id,
@@ -158,7 +163,7 @@ def download_from_s3(url, destination_dir, access_key_id = None,
             destination_file = os.path.join(destination_dir, base_file)
             if not os.path.exists(destination_file):
                 print(f"Downloading {base_file} ...")
-                bucket.download_file(f'{key_prefix}/{base_file}', destination_file)
+                bucket.download_file(f'/{key_prefix}/{base_file}', destination_file)
             else:
                 print(f"File already exists, skipping {base_file}")
 
@@ -210,7 +215,7 @@ def download_from_url(url, destination_dir):
 
 # Perepare data will clone the git repository given by data_source into the
 # destination_dir.
-def prepare_data(data_source, destination_dir, access_key_id=None, secret_access_key=None):
+def prepare_data(data_source, destination_dir, access_key_id=None, secret_access_key=None, debug=False):
 
     # Check that destination_dir is a directory. If it does not exist, then
     # create it.
@@ -229,7 +234,8 @@ def prepare_data(data_source, destination_dir, access_key_id=None, secret_access
         clone_git_repo(data_source, destination_dir)
     elif is_s3_url(data_source):
         # Handle the case where the data source is an S3 URL
-        download_from_s3(data_source, destination_dir, access_key_id, secret_access_key)
+        download_from_s3(url=data_source, destination_dir=destination_dir, access_key_id=access_key_id, 
+                         secret_access_key=secret_access_key, debug=debug)
     elif data_source.startswith('http://') or data_source.startswith('https://'):
         # Handle the case where the data source is a URL
         download_from_url(data_source, destination_dir)
@@ -250,9 +256,10 @@ def main():
     parser.add_argument("-d", "--dest", required=True, help="Destination directory to clone the repository and extract files")
     parser.add_argument("-a", "--access-key-id", required=False, help="AWS access key ID")
     parser.add_argument("-k", "--secret-access-key", required=False, help="AWS secret access key")
+    parser.add_argument("--debug", action='store_true', help="Enable debug mode")
 
     args = parser.parse_args()
-    prepare_data(args.data_source, args.dest, args.access_key_id, args.secret_access_key)
+    prepare_data(args.data_source, args.dest, args.access_key_id, args.secret_access_key, args.debug)
 
 
 if __name__ == "__main__":
