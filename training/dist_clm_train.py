@@ -153,7 +153,7 @@ def train_loop(args, pipe, device, train_data_loader, test_data_loader):
             if args.evaluation_steps > 0 and pipe.global_step % args.evaluation_steps == 0:
                 test_loop(args, pipe, device, test_data_loader)
             
-            if pipe.global_step % args.checkpoint_steps == 0:
+            if pipe.global_step >= args.total_steps or pipe.global_step % args.checkpoint_steps == 0:
                 if do_sync_before_save:
                     pipe.dp_optim.allreduce_parameters()
                 if dp_rank == 0:
@@ -190,7 +190,7 @@ def train_loop(args, pipe, device, train_data_loader, test_data_loader):
             if args.evaluation_steps > 0 and pipe.global_step % args.evaluation_steps == 0:
                 test_loop(args, pipe, device, test_data_loader)
                 
-            if pipe.global_step % args.checkpoint_steps == 0:
+            if pipe.global_step >= args.total_steps or pipe.global_step % args.checkpoint_steps == 0:
                 if do_sync_before_save:
                     pipe.dp_optim.allreduce_parameters()
                 if dp_rank == 0:
@@ -214,7 +214,7 @@ def train_loop(args, pipe, device, train_data_loader, test_data_loader):
             if args.evaluation_steps > 0 and pipe.global_step % args.evaluation_steps == 0:
                 test_loop(args, pipe, device, test_data_loader)
                 
-            if pipe.global_step % args.checkpoint_steps == 0:
+            if pipe.global_step >= args.total_steps or pipe.global_step % args.checkpoint_steps == 0:
                 if do_sync_before_save:
                     pipe.dp_optim.allreduce_parameters()
                 if dp_rank == 0:
@@ -233,7 +233,7 @@ def train_loop(args, pipe, device, train_data_loader, test_data_loader):
             if args.evaluation_steps > 0 and pipe.global_step % args.evaluation_steps == 0:
                 test_loop(args, pipe, device, test_data_loader)
                 
-            if pipe.global_step % args.checkpoint_steps == 0:
+            if pipe.global_step >= args.total_steps or pipe.global_step % args.checkpoint_steps == 0:
                 if do_sync_before_save:
                     pipe.dp_optim.allreduce_parameters()
                 if dp_rank == 0:
