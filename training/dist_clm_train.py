@@ -144,7 +144,7 @@ def train_loop(args, pipe, device, train_data_loader, test_data_loader):
             labels = input_ids.clone()
             current_iter_time = pipe.sgd_iter(input_ids, labels, loss_func=gpt_loss_func)
 
-            if event_reporter is not None:
+            if event_reporter is not None and args.epoch_steps != 0 and pipe.global_step % args.epoch_steps == 0:
                 event_reporter.report(object=EventReporter.OBJECT_FINE_TUNE,
                                       message=f"Epoch competed for step {pipe.global_step}",
                                       event_type=EventReporter.EVENT_TYPE_EPOCH_COMPLETE,
@@ -292,6 +292,7 @@ def main():
     parser.add_argument('--job-id', 
                         type=str, default="0", metavar='S',
                         help='an uuid')
+    parser.add_argument('--epoch-steps', type=int, default=0, help='-')
     args = parser.parse_args()
     
     torch.manual_seed(args.seed)
