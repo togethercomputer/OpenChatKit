@@ -292,7 +292,6 @@ def main():
     parser.add_argument('--job-id', 
                         type=str, default="0", metavar='S',
                         help='an uuid')
-    parser.add_argument('--epoch-steps', type=int, default=0, help='-')
     args = parser.parse_args()
     
     torch.manual_seed(args.seed)
@@ -346,6 +345,8 @@ def main():
         
     if args.total_steps is None:
         args.total_steps = len(train_data_loader)
+
+    args.epoch_steps = int(len(train_data_loader) / args.batch_size)
     
     use_dp = (args.world_size != args.pipeline_group_size)
     if use_dp:
