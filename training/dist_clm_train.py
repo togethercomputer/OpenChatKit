@@ -97,6 +97,8 @@ def train_loop(args, pipe, device, train_data_loader, test_data_loader):
     ).to(device)
     
     do_sync_before_save = (args.dp_mode in ['local'] and use_dp)
+
+    epoch_steps = int(len(train_data_loader) / args.batch_size)
     
     if get_pipeline_parallel_rank() == 0 and dp_rank == 0:
 
@@ -144,7 +146,7 @@ def train_loop(args, pipe, device, train_data_loader, test_data_loader):
             labels = input_ids.clone()
             current_iter_time = pipe.sgd_iter(input_ids, labels, loss_func=gpt_loss_func)
 
-            if event_reporter is not None and args.epoch_steps != 0 and pipe.global_step % args.epoch_steps == 0:
+            if event_reporter is not None and epoch_steps != 0 and pipe.global_step % args.epoch_steps == 0:
                 event_reporter.report(object=EventReporter.OBJECT_FINE_TUNE,
                                       message=f"Epoch competed for step {pipe.global_step}",
                                       event_type=EventReporter.EVENT_TYPE_EPOCH_COMPLETE,
@@ -345,8 +347,6 @@ def main():
         
     if args.total_steps is None:
         args.total_steps = len(train_data_loader)
-
-    args.epoch_steps = int(len(train_data_loader) / args.batch_size)
     
     use_dp = (args.world_size != args.pipeline_group_size)
     if use_dp:
