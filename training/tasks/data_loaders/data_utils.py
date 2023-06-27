@@ -282,13 +282,27 @@ class StreamDatasetList(IterableDataset):
 
         for jsonl_file in self.task_names:
             with open(jsonl_file, "r") as file:
-             for line in file:
-                 data = json.loads(line)
-                 text = data["text"]
-                 encoded_input = self.tokenizer.encode(text, add_special_tokens=True)
-                 token_count += len(encoded_input)
+                for line in file:
+                    data = json.loads(line)
+                    text = data["text"]
+                    encoded_input = self.tokenizer.encode(text, add_special_tokens=True)
+                    token_count += len(encoded_input)
 
         return token_count
+
+    def get_dataset_example_count(self) -> int:
+        num_lines = 0
+
+        if self.task_names is None:
+            return num_lines
+
+        for jsonl_file in self.task_names:
+            with open(jsonl_file, "r") as file:
+                for line in file:
+                    if line.replace(" ", "") != "\n":
+                        num_lines += 1
+
+        return num_lines
 
     
 def name_to_dataset(task, tokenizer, args):
