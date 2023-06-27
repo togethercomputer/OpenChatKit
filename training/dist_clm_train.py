@@ -99,6 +99,8 @@ def train_loop(args, pipe, device, train_data_loader, test_data_loader):
     do_sync_before_save = (args.dp_mode in ['local'] and use_dp)
 
     epoch_steps = int(len(train_data_loader) / args.batch_size)
+    if epoch_steps == 0:
+        epoch_steps = 1
     
     if get_pipeline_parallel_rank() == 0 and dp_rank == 0:
 
