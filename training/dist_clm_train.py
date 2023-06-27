@@ -100,7 +100,7 @@ def train_loop(args, pipe, device, train_data_loader, test_data_loader):
     
     if get_pipeline_parallel_rank() == 0 and dp_rank == 0:
 
-        epoch_steps = int(train_data_loader.get_dataset_example_count() / args.batch_size)
+        epoch_steps = int(train_data_loader.dataset.get_dataset_example_count() / args.batch_size)
         if epoch_steps == 0:
             epoch_steps = 1
             
