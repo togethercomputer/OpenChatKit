@@ -153,7 +153,7 @@ def train_loop(args, pipe, device, train_data_loader, test_data_loader):
 
             if event_reporter is not None and pipe.global_step % epoch_steps == 0:
                 event_reporter.report(object=EventReporter.OBJECT_FINE_TUNE,
-                                      message=f"Epoch competed, at step {pipe.global_step}",
+                                      message=f"Epoch completed, at step {pipe.global_step}",
                                       event_type=EventReporter.EVENT_TYPE_EPOCH_COMPLETE,
                                       requires_is_enabled=False)
             
