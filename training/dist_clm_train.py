@@ -97,7 +97,13 @@ def train_loop(args, pipe, device, train_data_loader, test_data_loader):
     ).to(device)
     
     do_sync_before_save = (args.dp_mode in ['local'] and use_dp)
-    
+
+    # Get the number of model parameters for the model
+    param_count = torch.zeros(1, dtype=torch.int64).to(device)
+    local_param_count = sum(p.numel() for p in pipe.model.parameters())
+    param_count.data[:] = local_param_count
+    pp_comm.reduce(param_count, 0)
+
     if get_pipeline_parallel_rank() == 0 and dp_rank == 0:
 
         epoch_steps = int(train_data_loader.dataset.get_dataset_example_count() / args.batch_size)
@@ -109,14 +115,11 @@ def train_loop(args, pipe, device, train_data_loader, test_data_loader):
             # Get the number of tokens in the dataset
             token_count = train_data_loader.dataset.get_dataset_token_count()
 
-            # Get the number of model parameters
-            param_count = sum(p.numel() for p in pipe.model.parameters())
-
             # Report training start
             event_reporter.report(object=EventReporter.OBJECT_FINE_TUNE,
                                   message=f"Training started for model {args.model_name}",
                                   event_type=EventReporter.EVENT_TYPE_TRAINING_START,
-                                  param_count=param_count,
+                                  param_count=param_count.item(),
                                   token_count=token_count,
                                   requires_is_enabled=False)
         
@@ -150,7 +153,7 @@ def train_loop(args, pipe, device, train_data_loader, test_data_loader):
 
             if event_reporter is not None and pipe.global_step % epoch_steps == 0:
                 event_reporter.report(object=EventReporter.OBJECT_FINE_TUNE,
-                                      message=f"Epoch competed for step {pipe.global_step}",
+                                      message=f"Epoch competed, at step {pipe.global_step}",
                                       event_type=EventReporter.EVENT_TYPE_EPOCH_COMPLETE,
                                       requires_is_enabled=False)
             
@@ -163,11 +166,6 @@ def train_loop(args, pipe, device, train_data_loader, test_data_loader):
                 if dp_rank == 0:
                     save_checkpoint(pipe, args)
 
-                    if event_reporter is not None:
-                        event_reporter.report(object=EventReporter.OBJECT_FINE_TUNE,
-                                              message=f"checkpoint saved for step {pipe.global_step}",
-                                              event_type=EventReporter.EVENT_TYPE_CHECKPOINT_SAVE,
-                                              requires_is_enabled=False)
                 if do_sync_before_save:
                     pipe.dp_optim.rollback_parameters()
             
