@@ -108,15 +108,14 @@ def train_loop(args, pipe, device, train_data_loader, test_data_loader):
 
     if get_pipeline_parallel_rank() == 0 and dp_rank == 0:
 
-        upload_manager = None
-        if args.upload_checkpoints:
-            upload_manager = UploadManager(aws_endpoint_url = args.aws_endpoint_url,
-                                           aws_access_key_id = args.aws_access_key_id,
-                                           aws_secret_access_key = args.aws_secret_access_key,
-                                           aws_session_token = args.aws_session_token,
-                                           aws_region = args.aws_region,
-                                           event_reporter = event_reporter,
-                                           n_stages = dp_size)
+        upload_checkpoints_enabled = args.checkpoint_upload_prefix is not None 
+        upload_manager = UploadManager(aws_endpoint_url = args.aws_endpoint_url,
+                                       aws_access_key_id = args.aws_access_key_id,
+                                       aws_secret_access_key = args.aws_secret_access_key,
+                                       aws_session_token = args.aws_session_token,
+                                       aws_region = args.aws_region,
+                                       event_reporter = event_reporter,
+                                       n_stages = dp_size)
 
         epoch_steps = int(train_data_loader.dataset.get_dataset_example_count() / args.batch_size)
         if epoch_steps == 0:
@@ -177,14 +176,19 @@ def train_loop(args, pipe, device, train_data_loader, test_data_loader):
                     pipe.dp_optim.allreduce_parameters()
                 if dp_rank == 0:
                     checkpoint_step_path = save_checkpoint(pipe, args)
-                    if args.upload_checkpoints:
-                        upload_manager.upload_checkpoints(checkpoint_step_path, args.bucket_name, args.prefix, pipe.global_step)
+                    if upload_checkpoints_enabled:
+                        upload_manager.upload_checkpoints(directory=checkpoint_step_path,
+                                                          checkpoint_upload_prefix=args.checkpoint_upload_prefix,
+                                                          step=pipe.global_step)
 
                 if do_sync_before_save:
                     pipe.dp_optim.rollback_parameters()
             
             if pipe.global_step >= args.total_steps:
                 stop_flag.data[:] = 1
+        
+        if upload_checkpoints_enabled:
+            upload_manager.wait()
             
     elif get_pipeline_parallel_rank() == 0:
         
@@ -310,9 +314,7 @@ def main():
                         help='an uuid')
     
     # Add AWS arguments for uploading checkpoints to S3
-    parser.add_argument('--bucket-name', required=True, help='S3 bucket name')
-    parser.add_argument('--prefix', required=True, help='Prefix for the S3 objects')
-    parser.add_argument('--upload-checkpoints', action='store_true', default=False, help='Upload checkpoints to S3')
+    parser.add_argument('--checkpoint-upload-prefix', required=True, help='S3 bucket name')
     add_aws_arguments(parser)
 
     args = parser.parse_args()

@@ -1,13 +1,14 @@
 import argparse
-import os
 import boto3
 import concurrent.futures
+import os
+import re
 import sys
 import time
 
 from event_report import *
 
-class TaskManager:
+class UploadManager:
     def __init__(self, aws_endpoint_url: str, aws_access_key_id: str,
                  aws_secret_access_key: str, aws_session_token: str = None,
                  aws_region: str = "auto", event_reporter: EventReporter = None,
@@ -36,8 +37,18 @@ class TaskManager:
         self.n_stages = n_stages
         self.max_wait_sec = max_wait_sec
 
-    def add_task(self, directory: str, s3_bucket: str, s3_key_prefix: str, step: int = 0):
+    def add_task(self, directory: str, checkpoint_upload_prefix: str, step: int = 0):
         if self.enabled:
+            # Check that the provided checkpoint upload s3 prefix is valid regex
+            if not re.match(r"s3://[a-zA-Z0-9.\-_]{3,255}/.+", checkpoint_upload_prefix):
+                raise ValueError("checkpoint_upload_prefix must start with s3://")
+            # Get the s3 bucket and key from the checkpoint upload prefix
+            s3_bucket = checkpoint_upload_prefix.split("/")[2]
+            s3_key_prefix = "/".join(checkpoint_upload_prefix.split("/")[3:])
+            if not s3_key_prefix.endswith("/"):
+                s3_key_prefix += "/"
+            print(f"Uploading checkpoint to bucket=\"{s3_bucket}\", prefix=\"{s3_key_prefix}\"")
+
             future = self.executor.submit(self._execute_task, directory, s3_bucket, s3_key_prefix, step)
             self.futures.append(future)
 
@@ -62,7 +73,7 @@ class TaskManager:
 
     def _execute_task(self, directory, s3_bucket, s3_key_prefix, step: int):
         try:
-            print(f"Wait for all stages to finish ...")
+            print(f"Step {step} - Wait for all checkpoint stages to finish ...")
 
             wait_start_time = time.time()
             finished_files = set()
@@ -73,7 +84,7 @@ class TaskManager:
             while True:
                 # Get the list of files in the directory
                 files = os.listdir(directory)
-                print(f"Found {len(files)} files in directory: {directory}")
+                print(f"Step {step} - Found {len(files)} files in directory: {directory}")
 
                 # Check if all stages have finished
                 all_finished = False
@@ -81,13 +92,13 @@ class TaskManager:
                     all_finished = True
                     # Check if all files are closed
                     for file in files:
-                        print(f"Checking if file {file} is finished writing ...")
+                        print(f"Step {step} - Checking if {file} has is finished writing ...")
                         if file not in finished_files:
                             if self._wait_for_file_write_to_finish(os.path.join(directory, file), wait_start_time) == False:
                                 all_finished = False
                                 break
                             else:
-                                print(f"File {file} is finished writing")
+                                print(f"Step {step} - Checking if {file} has is finished writing ... Done")
                                 finished_files.add(file)
 
                 else:
@@ -98,12 +109,12 @@ class TaskManager:
 
                 # Check if we have timed out waiting for all stages to finish
                 if time.time() - wait_start_time > self.max_wait_sec:
-                    print(f"Timeout waiting for all stages to finish")
+                    print(f"Step {step} - Timeout waiting for all stages to finish")
                     return
                 
                 time.sleep(10)
 
-            print(f"Compressing files in directory: {directory}")
+            print(f"Step {step} - Compressing files in directory: {directory}")
             tar_file_path = f"{directory}.tar.zst"
 
             # Get the tar file path
@@ -112,17 +123,35 @@ class TaskManager:
             # Compress the directory via cli
             if not self.dry_run:
                 if os.system(f"tar -cf - -C \"{directory}\" . | zstd -3 -T4 > \"{tar_file_path}\"") != 0:
-                    print(f"Failed to compress {directory}")
+                    print(f"Step {step} - Failed to compress {directory}")
                     return
 
-            s3_key = f"{s3_key_prefix}/{tar_file_name}"
-            print(f"Uploading {tar_file_path} to s3://{s3_bucket}/{s3_key}")
+            s3_key = f"{s3_key_prefix}{tar_file_name}"
+            print(f"Step {step} - Uploading checkpoint to s3://{s3_bucket}/{s3_key}")
             if not self.dry_run:
+                # Try uploading the tar file to s3. If it fails, try again after
+                # 20 seconds.
+                for i in range(3):
+                    try:
+                        self.s3_client.upload_file(tar_file_path, s3_bucket, s3_key)
+                        break
+                    except Exception as e:
+                        print(f"Step {step} - Failed to upload checkpoint to s3: {e}")
+                        if i == 2:
+                            self.event_reporter.report(object=EventReporter.OBJECT_FINE_TUNE,
+                                                    message=f"Step {step}, failed to upload checkpoint",
+                                                    event_type=EventReporter.EVENT_TYPE_JOB_ERROR,
+                                                    level=EventReporter.EVENT_LEVEL_ERROR,
+                                                    requires_is_enabled=False)
+                            return
+                        time.sleep(20)
+
+
                 self.s3_client.upload_file(tar_file_path, s3_bucket, s3_key)
                 os.remove(tar_file_path)
 
             if self.event_reporter is not None:
-                print(f"Reporting event for step {step}")
+                print(f"Step {step} - Reporting event")
                 try:
                     self.event_reporter.report(object=EventReporter.OBJECT_FINE_TUNE,
                                             message=f"Uploaded checkpoint, at step {step}",
@@ -130,11 +159,17 @@ class TaskManager:
                                             checkpoint_path=f"s3://{s3_bucket}/{s3_key}",
                                             requires_is_enabled=False)
                 except Exception as e:
-                    print(f"Failed to report event: {e}")
+                    print(f"Step {step} - Failed to report event: {e}")
             else:
-                print(f"Event reporter is disabled, skipping reporting event for step {step}")
+                print(f"Step {step} - Event reporter is disabled, skipping reporting event")
         except Exception as e:
-            print(f"Exception: {e}")
+            print(f"Exception: Step {step} - {e}")
+            self.event_reporter.report(object=EventReporter.OBJECT_FINE_TUNE,
+                                       message=f"Step {step}, failed to upload checkpoint",
+                                       event_type=EventReporter.EVENT_TYPE_JOB_ERROR,
+                                       level=EventReporter.EVENT_LEVEL_ERROR,
+                                       requires_is_enabled=False)
+            
 
 
 def add_aws_arguments(parser: argparse.ArgumentParser):
@@ -160,8 +195,6 @@ def aws_process_args(args: argparse.Namespace):
     if args.aws_session_token is None:
         args.aws_session_token = os.environ.get('AWS_SESSION_TOKEN')
 
-
-
 def main():
     parser = argparse.ArgumentParser(description='Process S3 file objects with a specific prefix')
     parser.add_argument('--bucket-name', required=True, help='S3 bucket name')
@@ -181,20 +214,22 @@ def main():
     if args.event_host is not None and args.event_auth_token is not None and args.job_id is not None:
         event_reporter = EventReporter(host=args.event_host, auth_token=args.event_auth_token, job_id=args.job_id)
 
-    task_manager = TaskManager(aws_endpoint_url = args.aws_endpoint_url,
-                               aws_access_key_id = args.aws_access_key_id,
-                               aws_secret_access_key = args.aws_secret_access_key,
-                               aws_session_token = args.aws_session_token,
-                               aws_region = args.aws_region,
-                               event_reporter = event_reporter,
-                               n_stages = args.n_stages,
-                               dry_run = args.dry_run)
+    task_manager = UploadManager(aws_endpoint_url = args.aws_endpoint_url,
+                                 aws_access_key_id = args.aws_access_key_id,
+                                 aws_secret_access_key = args.aws_secret_access_key,
+                                 aws_session_token = args.aws_session_token,
+                                 aws_region = args.aws_region,
+                                 event_reporter = event_reporter,
+                                 n_stages = args.n_stages,
+                                 dry_run = args.dry_run)
 
+    checkpoint_upload_prefix = f"s3://{args.bucket_name}/{args.prefix}/"
     step = 0
     for directory in args.directories:
         print(f"Adding task for directory: {directory}")
         step += 1
-        task_manager.add_task(directory, args.bucket_name, args.prefix, step)
+        task_manager.add_task(directory=directory, checkpoint_upload_prefix=checkpoint_upload_prefix, step=step)
+        time.sleep(20)
 
     print("Waiting for tasks to complete...")
     start_time = time.time()
