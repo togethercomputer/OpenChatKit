@@ -115,7 +115,7 @@ def train_loop(args, pipe, device, train_data_loader, test_data_loader):
                                        aws_session_token = args.aws_session_token,
                                        aws_region = args.aws_region,
                                        event_reporter = event_reporter,
-                                       n_stages = dp_size)
+                                       n_stages = args.pipeline_group_size)
 
         epoch_steps = int(train_data_loader.dataset.get_dataset_example_count() / args.batch_size)
         if epoch_steps == 0:
