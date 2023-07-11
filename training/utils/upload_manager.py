@@ -6,7 +6,7 @@ import re
 import sys
 import time
 
-from event_report import *
+from utils.event_report import *
 
 class UploadManager:
     def __init__(self, aws_endpoint_url: str, aws_access_key_id: str,
