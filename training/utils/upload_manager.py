@@ -84,7 +84,7 @@ class UploadManager:
             while True:
                 # Get the list of files in the directory
                 files = os.listdir(directory)
-                print(f"Step {step} - Found {len(files)} files in directory: {directory}")
+                print(f"Step {step} - Found {len(files)} of expected {3 * self.n_stages + 1} files in directory: {directory}")
 
                 # Check if all stages have finished
                 all_finished = False
