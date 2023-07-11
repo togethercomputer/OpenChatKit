@@ -61,7 +61,7 @@ def load_checkpoint(pipe, args):
         print('failed to load scheduler states.')
         
             
-def save_checkpoint(pipe, args):
+def save_checkpoint(pipe, args) -> str:
     
     latest_step = pipe.global_step
     checkpoint_step_path = os.path.join(args.checkpoint_path, f"checkpoint_{latest_step}")
@@ -100,6 +100,8 @@ def save_checkpoint(pipe, args):
         f.write(f"{latest_step}")
 
     print(f"Checkpoint saved to {checkpoint_step_path} ... Done")
+
+    return checkpoint_step_path
         
         
 def save_stream_dataloader_state_dict(dataloader, pipe, args):
