@@ -177,9 +177,9 @@ def train_loop(args, pipe, device, train_data_loader, test_data_loader):
                 if dp_rank == 0:
                     checkpoint_step_path = save_checkpoint(pipe, args)
                     if upload_checkpoints_enabled:
-                        upload_manager.upload_checkpoints(directory=checkpoint_step_path,
-                                                          checkpoint_upload_prefix=args.checkpoint_upload_prefix,
-                                                          step=pipe.global_step)
+                        upload_manager.add_task(directory=checkpoint_step_path,
+                                                checkpoint_upload_prefix=args.checkpoint_upload_prefix,
+                                                step=pipe.global_step)
 
                 if do_sync_before_save:
                     pipe.dp_optim.rollback_parameters()
