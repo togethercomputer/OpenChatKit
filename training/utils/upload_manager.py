@@ -19,13 +19,18 @@ class UploadManager:
 
         if aws_endpoint_url is not None and aws_access_key_id is not None and aws_secret_access_key is not None and aws_region is not None:
             # Create an S3 client
-            self.aws_access_key_id = aws_access_key_id,
-            self.aws_secret_access_key = aws_secret_access_key,
-            self.aws_session_token = aws_session_token,
+            self.aws_access_key_id = aws_access_key_id
+            self.aws_secret_access_key = aws_secret_access_key
+            self.aws_session_token = aws_session_token
             self.aws_region = aws_region
             self.aws_endpoint_url = aws_endpoint_url
             self.enabled = True
         else:
+            self.aws_access_key_id = None
+            self.aws_secret_access_key = None
+            self.aws_session_token = None
+            self.aws_region = None
+            self.aws_endpoint_url = None
             self.enabled = False
 
         self.event_reporter = event_reporter
