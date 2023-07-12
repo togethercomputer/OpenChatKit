@@ -180,8 +180,6 @@ class UploadManager:
                                event_type=EventReporter.EVENT_TYPE_JOB_ERROR,
                                level=EventReporter.LEVEL_ERROR,
                                requires_is_enabled=False)
-            
-
 
 def add_aws_arguments(parser: argparse.ArgumentParser):
     parser.add_argument('--aws-endpoint-url', help='AWS endpoint URL')
