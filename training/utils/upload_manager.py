@@ -59,6 +59,10 @@ class UploadManager:
         if self.enabled:
             concurrent.futures.wait(self.futures)
 
+    def _report_event(self, *args):
+        if self.event_reporter is not None:
+            self.event_reporter.report_event(object=EventReporter.OBJECT_FINE_TUNE, *args)
+
     def _wait_for_file_write_to_finish(self, file_path: str, wait_start_time: float) -> bool:
         try:
             file_size = os.stat(file_path).st_size
@@ -150,11 +154,10 @@ class UploadManager:
                     except Exception as e:
                         print(f"Step {step} - Failed to upload checkpoint to s3: {e}")
                         if i == 2:
-                            self.event_reporter.report(object=EventReporter.OBJECT_FINE_TUNE,
-                                                    message=f"Step {step}, failed to upload checkpoint",
-                                                    event_type=EventReporter.EVENT_TYPE_JOB_ERROR,
-                                                    level=EventReporter.LEVEL_ERROR,
-                                                    requires_is_enabled=False)
+                            self._report_event(message=f"Step {step}, failed to upload checkpoint",
+                                               event_type=EventReporter.EVENT_TYPE_JOB_ERROR,
+                                               level=EventReporter.LEVEL_ERROR,
+                                               requires_is_enabled=False)
                             return
                         time.sleep(20)
 
@@ -163,22 +166,20 @@ class UploadManager:
             if self.event_reporter is not None:
                 print(f"Step {step} - Reporting event")
                 try:
-                    self.event_reporter.report(object=EventReporter.OBJECT_FINE_TUNE,
-                                            message=f"Uploaded checkpoint, at step {step}",
-                                            event_type=EventReporter.EVENT_TYPE_CHECKPOINT_SAVE,
-                                            checkpoint_path=f"s3://{s3_bucket}/{s3_key}",
-                                            requires_is_enabled=False)
+                    self._report_event(message=f"Uploaded checkpoint, at step {step}",
+                                       event_type=EventReporter.EVENT_TYPE_CHECKPOINT_SAVE,
+                                       checkpoint_path=f"s3://{s3_bucket}/{s3_key}",
+                                       requires_is_enabled=False)
                 except Exception as e:
                     print(f"Step {step} - Failed to report event: {e}")
             else:
                 print(f"Step {step} - Event reporter is disabled, skipping reporting event")
         except Exception as e:
             print(f"Exception: Step {step} - {e}")
-            self.event_reporter.report(object=EventReporter.OBJECT_FINE_TUNE,
-                                       message=f"Step {step}, failed to upload checkpoint",
-                                       event_type=EventReporter.EVENT_TYPE_JOB_ERROR,
-                                       level=EventReporter.LEVEL_ERROR,
-                                       requires_is_enabled=False)
+            self._report_event(message=f"Step {step}, failed to upload checkpoint",
+                               event_type=EventReporter.EVENT_TYPE_JOB_ERROR,
+                               level=EventReporter.LEVEL_ERROR,
+                               requires_is_enabled=False)
             
 
 
