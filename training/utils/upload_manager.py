@@ -148,7 +148,7 @@ class UploadManager:
                             self.event_reporter.report(object=EventReporter.OBJECT_FINE_TUNE,
                                                     message=f"Step {step}, failed to upload checkpoint",
                                                     event_type=EventReporter.EVENT_TYPE_JOB_ERROR,
-                                                    level=EventReporter.EVENT_LEVEL_ERROR,
+                                                    level=EventReporter.LEVEL_ERROR,
                                                     requires_is_enabled=False)
                             return
                         time.sleep(20)
@@ -172,7 +172,7 @@ class UploadManager:
             self.event_reporter.report(object=EventReporter.OBJECT_FINE_TUNE,
                                        message=f"Step {step}, failed to upload checkpoint",
                                        event_type=EventReporter.EVENT_TYPE_JOB_ERROR,
-                                       level=EventReporter.EVENT_LEVEL_ERROR,
+                                       level=EventReporter.LEVEL_ERROR,
                                        requires_is_enabled=False)
             
 
