@@ -271,7 +271,14 @@ class StreamDatasetList(IterableDataset):
         if self.it is None:
             self.it = self.get_stream()
         return self.it
-    
+
+    def tokenize_function(examples):
+        # Update here
+        output = tokenizer(
+            examples["text"], padding=False, truncation=True, max_length=tokenizer.model_max_length,
+        )
+        return output
+        
     # Compute the number of tokens in a dataset using a Torch tokenizer
     # - return: the sum of tokens from the the text field of each sample in the dataset
     def get_dataset_token_count(self) -> int:
@@ -280,13 +287,26 @@ class StreamDatasetList(IterableDataset):
         if self.task_names is None:
             return token_count
 
-        for jsonl_file in self.task_names:
-            with open(jsonl_file, "r") as file:
-                for line in file:
-                    data = json.loads(line)
-                    text = data["text"]
-                    encoded_input = self.tokenizer.encode(text, add_special_tokens=True)
-                    token_count += len(encoded_input)
+        raw_datasets = load_dataset(
+                        "json",
+                        data_files=self.task_names,
+                        split="train",
+                    )
+        
+        column_names = list(raw_datasets.features)
+        
+        tokenized_datasets = raw_datasets.map(
+            self.tokenize_function,
+            batched=True,
+            remove_columns=column_names,
+            desc="Running tokenizer on dataset",
+        )
+        
+        for item in tokenized_datasets:
+            token_count += len(item['input_ids'])
+
+        # clean up cache
+        raw_datasets.cleanup_cache_files()
 
         return token_count
 
