@@ -19,13 +19,11 @@ class UploadManager:
 
         if aws_endpoint_url is not None and aws_access_key_id is not None and aws_secret_access_key is not None and aws_region is not None:
             # Create an S3 client
-            self.session = boto3.Session(
-                aws_access_key_id=aws_access_key_id,
-                aws_secret_access_key=aws_secret_access_key,
-                aws_session_token=aws_session_token,
-                region_name=aws_region
-            )
-            self.s3_client = self.session.client('s3', endpoint_url=aws_endpoint_url)
+            self.aws_access_key_id = aws_access_key_id,
+            self.aws_secret_access_key = aws_secret_access_key,
+            self.aws_session_token = aws_session_token,
+            self.aws_region = aws_region
+            self.aws_endpoint_url = aws_endpoint_url
             self.enabled = True
         else:
             self.enabled = False
@@ -73,6 +71,15 @@ class UploadManager:
 
     def _execute_task(self, directory, s3_bucket, s3_key_prefix, step: int):
         try:
+            # Create an S3 client
+            session = boto3.Session(
+                aws_access_key_id=self.aws_access_key_id,
+                aws_secret_access_key=self.aws_secret_access_key,
+                aws_session_token=self.aws_session_token,
+                region_name=self.aws_region
+            )
+            s3_client = session.client('s3', endpoint_url=self.aws_endpoint_url)
+
             print(f"Step {step} - Wait for all checkpoint stages to finish ...")
 
             wait_start_time = time.time()
@@ -133,7 +140,7 @@ class UploadManager:
                 # 20 seconds.
                 for i in range(3):
                     try:
-                        self.s3_client.upload_file(tar_file_path, s3_bucket, s3_key)
+                        s3_client.upload_file(tar_file_path, s3_bucket, s3_key)
                         break
                     except Exception as e:
                         print(f"Step {step} - Failed to upload checkpoint to s3: {e}")
@@ -146,8 +153,6 @@ class UploadManager:
                             return
                         time.sleep(20)
 
-
-                self.s3_client.upload_file(tar_file_path, s3_bucket, s3_key)
                 os.remove(tar_file_path)
 
             if self.event_reporter is not None:
@@ -194,7 +199,7 @@ def aws_process_args(args: argparse.Namespace):
             sys.exit(1)
     if args.aws_session_token is None:
         args.aws_session_token = os.environ.get('AWS_SESSION_TOKEN')
-
+self.
 def main():
     parser = argparse.ArgumentParser(description='Process S3 file objects with a specific prefix')
     parser.add_argument('--bucket-name', required=True, help='S3 bucket name')
