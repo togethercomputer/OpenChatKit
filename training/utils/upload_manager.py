@@ -59,9 +59,9 @@ class UploadManager:
         if self.enabled:
             concurrent.futures.wait(self.futures)
 
-    def _report_event(self, *args):
+    def _report_event(self, **kwargs):
         if self.event_reporter is not None:
-            self.event_reporter.report_event(object=EventReporter.OBJECT_FINE_TUNE, *args)
+            self.event_reporter.report(object=EventReporter.OBJECT_FINE_TUNE, **kwargs)
 
     def _wait_for_file_write_to_finish(self, file_path: str, wait_start_time: float) -> bool:
         try:
