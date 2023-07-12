@@ -199,7 +199,7 @@ def aws_process_args(args: argparse.Namespace):
             sys.exit(1)
     if args.aws_session_token is None:
         args.aws_session_token = os.environ.get('AWS_SESSION_TOKEN')
-self.
+
 def main():
     parser = argparse.ArgumentParser(description='Process S3 file objects with a specific prefix')
     parser.add_argument('--bucket-name', required=True, help='S3 bucket name')
