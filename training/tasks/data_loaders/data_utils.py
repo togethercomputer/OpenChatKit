@@ -273,10 +273,10 @@ class StreamDatasetList(IterableDataset):
             self.it = self.get_stream()
         return self.it
 
-    def tokenize_function(examples):
+    def tokenize_function(self, examples):
         # Update here
-        output = tokenizer(
-            examples["text"], padding=False, truncation=True, max_length=tokenizer.model_max_length,
+        output = self.tokenizer(
+            examples["text"], padding=False, truncation=True, max_length=self.tokenizer.model_max_length,
         )
         return output
         
@@ -289,7 +289,7 @@ class StreamDatasetList(IterableDataset):
         self.token_count = 0
 
         if self.task_names is None:
-            return token_count
+            return self.token_count
 
         raw_datasets = load_dataset(
                         "json",
