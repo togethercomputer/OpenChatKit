@@ -118,7 +118,7 @@ def train_loop(args, pipe, device, train_data_loader, test_data_loader):
                                        n_stages = args.pipeline_group_size)
 
         epoch_steps = int(train_data_loader.dataset.get_dataset_example_count() / args.batch_size)
-        if epoch_steps == 0:
+        if epoch_steps < 1:
             epoch_steps = 1
             
         if event_reporter is not None:
@@ -324,6 +324,9 @@ def main():
     parser.add_argument('--checkpoint-steps', 
                         type=int, default=0, metavar='S',
                         help='every x steps, save checkpoint. (0 means do not save checkpoint)')
+    parser.add_argument('--num-checkpoints', 
+                        type=int, default=0, metavar='S',
+                        help='number of checkpoints to save')
     parser.add_argument('--net-interface', 
                         type=str, default='lo', metavar='S',
                         help='net_interface')
@@ -389,6 +392,10 @@ def main():
     
     # calculate total steps
     args.total_steps = calculate_training_steps(args, train_data_loader)
+    if args.checkpoint_steps == 0 and args.num_checkpoints > 0:
+        args.checkpoint_steps = int(args.total_steps / args.num_checkpoints)
+        if args.checkpoint_steps < 1:
+            args.checkpoint_steps = 1
     
     use_dp = (args.world_size != args.pipeline_group_size)
     if use_dp:
