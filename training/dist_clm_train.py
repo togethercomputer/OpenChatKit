@@ -270,7 +270,7 @@ def calculate_training_steps(args, train_data_loader) -> int:
             print("WARNING: total_steps ({args.toal_steps}) supercedes nepochs ({args.nepochs}).")
         return args.total_steps
 
-    token_count = train_data_loader.get_dataset_token_count()
+    token_count = train_data_loader.dataset.get_dataset_token_count()
 
     # Check the inputs to calculate the total steps
     if args.batch_size is None or args.world_size is None or args.pipeline_group_size is None or token_count is None or args.seq_length is None:
