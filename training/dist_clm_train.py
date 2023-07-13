@@ -272,11 +272,23 @@ def calculate_training_steps(args, train_data_loader) -> int:
 
     token_count = train_data_loader.dataset.get_dataset_token_count()
 
+    print(f"Total token count: {token_count}")
+
     # Check the inputs to calculate the total steps
     if args.batch_size is None or args.world_size is None or args.pipeline_group_size is None or token_count is None or args.seq_length is None:
         print("Missing required arguments for calculating total steps based on epochs.")
         sys.exit(1)
+
+    print(f"Epochs: {args.nepochs}")
+    print(f"Batch size: {args.batch_size}")
+    print(f"World size: {args.world_size}")
+    print(f"Pipeline group size: {args.pipeline_group_size}")
+    print(f"Sequence length: {args.seq_length}")
+
     global_batch_size = int(args.batch_size * args.world_size / args.pipeline_group_size)
+
+    print(f"Global batch size: {global_batch_size}")
+
     return int((args.nepochs * token_count) / (global_batch_size * args.seq_length))
 
 def main():
