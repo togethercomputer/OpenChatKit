@@ -260,7 +260,24 @@ def train_loop(args, pipe, device, train_data_loader, test_data_loader):
                     save_checkpoint(pipe, args)
                 if do_sync_before_save:
                     pipe.dp_optim.rollback_parameters()
-        
+
+def calculate_training_steps(args, train_data_loader) -> int:
+    if args.total_steps is None and args.nepochs is None:
+        return len(train_data_loader)
+
+    if args.total_steps is not None:
+        if args.nepochs is not None:
+            print("WARNING: total_steps ({args.toal_steps}) supercedes nepochs ({args.nepochs}).")
+        return args.total_steps
+
+    token_count = train_data_loader.get_dataset_token_count()
+
+    # Check the inputs to calculate the total steps
+    if args.batch_size is None or args.world_size is None or args.pipeline_group_size is None or token_count is None or args.seq_length is None:
+        print("Missing required arguments for calculating total steps based on epochs.")
+        sys.exit(1)
+    global_batch_size = int(args.batch_size * args.world_size / args.pipeline_group_size)
+    return int((args.nepochs * token_count) / (global_batch_size * args.seq_length))
 
 def main():
     parser = argparse.ArgumentParser(description='Gpipe-GPT')
@@ -283,6 +300,7 @@ def main():
                         help='task name')
     parser.add_argument('--warmup-steps', type=int, default=0, help='-')
     parser.add_argument('--train-warmup-steps', type=int, default=0, help='-')
+    parser.add_argument('--nepochs', type=int, default=None, help='-')
     parser.add_argument('--total-steps', type=int, default=None, help='-')
     parser.add_argument('--load-pretrained-model', 
                         type=lambda x: x.lower()=='true', default=True, metavar='S',
@@ -368,9 +386,9 @@ def main():
         test_data_loader = get_eval_data_loader(args, tokenizer)
     else:
         test_data_loader = None
-        
-    if args.total_steps is None:
-        args.total_steps = len(train_data_loader)
+    
+    # calculate total steps
+    args.total_steps = calculate_training_steps(args, train_data_loader)
     
     use_dp = (args.world_size != args.pipeline_group_size)
     if use_dp:

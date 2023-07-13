@@ -227,6 +227,7 @@ class StreamDatasetList(IterableDataset):
         self.seq_length = seq_length
         self.print_sample_every_n = print_sample_every_n
         self.post_processor = post_processor
+        self.token_count = None
         
         self.it = None
         
@@ -282,7 +283,10 @@ class StreamDatasetList(IterableDataset):
     # Compute the number of tokens in a dataset using a Torch tokenizer
     # - return: the sum of tokens from the the text field of each sample in the dataset
     def get_dataset_token_count(self) -> int:
-        token_count = 0
+        if self.token_count is not None:
+            return self.token_count
+
+        self.token_count = 0
 
         if self.task_names is None:
             return token_count
@@ -303,12 +307,12 @@ class StreamDatasetList(IterableDataset):
         )
         
         for item in tokenized_datasets:
-            token_count += len(item['input_ids'])
+            self.token_count += len(item['input_ids'])
 
         # clean up cache
         raw_datasets.cleanup_cache_files()
 
-        return token_count
+        return self.token_count
 
     def get_dataset_example_count(self) -> int:
         num_lines = 0
