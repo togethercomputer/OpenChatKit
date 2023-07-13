@@ -260,6 +260,11 @@ def train_loop(args, pipe, device, train_data_loader, test_data_loader, steps_pe
 # Compute the total number of training steps, steps per epoch, and steps per
 # checkpoint
 def calculate_training_steps(args, train_data_loader) -> int:
+    print(f"args.total_steps={args.total_steps}")
+    print(f"args.nepochs={args.nepochs}")
+    print(f"args.checkpoint_steps={args.checkpoint_steps}")
+    print(f"args.num_checkpoints={args.num_checkpoints}")
+
     total_steps = 0
     steps_per_epoch = 0
     steps_per_checkpoint = 0
