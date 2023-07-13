@@ -19,15 +19,18 @@ class UploadManager:
 
         if aws_endpoint_url is not None and aws_access_key_id is not None and aws_secret_access_key is not None and aws_region is not None:
             # Create an S3 client
-            self.session = boto3.Session(
-                aws_access_key_id=aws_access_key_id,
-                aws_secret_access_key=aws_secret_access_key,
-                aws_session_token=aws_session_token,
-                region_name=aws_region
-            )
-            self.s3_client = self.session.client('s3', endpoint_url=aws_endpoint_url)
+            self.aws_access_key_id = aws_access_key_id
+            self.aws_secret_access_key = aws_secret_access_key
+            self.aws_session_token = aws_session_token
+            self.aws_region = aws_region
+            self.aws_endpoint_url = aws_endpoint_url
             self.enabled = True
         else:
+            self.aws_access_key_id = None
+            self.aws_secret_access_key = None
+            self.aws_session_token = None
+            self.aws_region = None
+            self.aws_endpoint_url = None
             self.enabled = False
 
         self.event_reporter = event_reporter
@@ -56,6 +59,10 @@ class UploadManager:
         if self.enabled:
             concurrent.futures.wait(self.futures)
 
+    def _report_event(self, **kwargs):
+        if self.event_reporter is not None:
+            self.event_reporter.report(object=EventReporter.OBJECT_FINE_TUNE, **kwargs)
+
     def _wait_for_file_write_to_finish(self, file_path: str, wait_start_time: float) -> bool:
         try:
             file_size = os.stat(file_path).st_size
@@ -73,6 +80,15 @@ class UploadManager:
 
     def _execute_task(self, directory, s3_bucket, s3_key_prefix, step: int):
         try:
+            # Create an S3 client
+            session = boto3.Session(
+                aws_access_key_id=self.aws_access_key_id,
+                aws_secret_access_key=self.aws_secret_access_key,
+                aws_session_token=self.aws_session_token,
+                region_name=self.aws_region
+            )
+            s3_client = session.client('s3', endpoint_url=self.aws_endpoint_url)
+
             print(f"Step {step} - Wait for all checkpoint stages to finish ...")
 
             wait_start_time = time.time()
@@ -133,44 +149,37 @@ class UploadManager:
                 # 20 seconds.
                 for i in range(3):
                     try:
-                        self.s3_client.upload_file(tar_file_path, s3_bucket, s3_key)
+                        s3_client.upload_file(tar_file_path, s3_bucket, s3_key)
                         break
                     except Exception as e:
                         print(f"Step {step} - Failed to upload checkpoint to s3: {e}")
                         if i == 2:
-                            self.event_reporter.report(object=EventReporter.OBJECT_FINE_TUNE,
-                                                    message=f"Step {step}, failed to upload checkpoint",
-                                                    event_type=EventReporter.EVENT_TYPE_JOB_ERROR,
-                                                    level=EventReporter.EVENT_LEVEL_ERROR,
-                                                    requires_is_enabled=False)
+                            self._report_event(message=f"Step {step}, failed to upload checkpoint",
+                                               event_type=EventReporter.EVENT_TYPE_JOB_ERROR,
+                                               level=EventReporter.LEVEL_ERROR,
+                                               requires_is_enabled=False)
                             return
                         time.sleep(20)
 
-
-                self.s3_client.upload_file(tar_file_path, s3_bucket, s3_key)
                 os.remove(tar_file_path)
 
             if self.event_reporter is not None:
                 print(f"Step {step} - Reporting event")
                 try:
-                    self.event_reporter.report(object=EventReporter.OBJECT_FINE_TUNE,
-                                            message=f"Uploaded checkpoint, at step {step}",
-                                            event_type=EventReporter.EVENT_TYPE_CHECKPOINT_SAVE,
-                                            checkpoint_path=f"s3://{s3_bucket}/{s3_key}",
-                                            requires_is_enabled=False)
+                    self._report_event(message=f"Uploaded checkpoint, at step {step}",
+                                       event_type=EventReporter.EVENT_TYPE_CHECKPOINT_SAVE,
+                                       checkpoint_path=f"s3://{s3_bucket}/{s3_key}",
+                                       requires_is_enabled=False)
                 except Exception as e:
                     print(f"Step {step} - Failed to report event: {e}")
             else:
                 print(f"Step {step} - Event reporter is disabled, skipping reporting event")
         except Exception as e:
             print(f"Exception: Step {step} - {e}")
-            self.event_reporter.report(object=EventReporter.OBJECT_FINE_TUNE,
-                                       message=f"Step {step}, failed to upload checkpoint",
-                                       event_type=EventReporter.EVENT_TYPE_JOB_ERROR,
-                                       level=EventReporter.EVENT_LEVEL_ERROR,
-                                       requires_is_enabled=False)
-            
-
+            self._report_event(message=f"Step {step}, failed to upload checkpoint",
+                               event_type=EventReporter.EVENT_TYPE_JOB_ERROR,
+                               level=EventReporter.LEVEL_ERROR,
+                               requires_is_enabled=False)
 
 def add_aws_arguments(parser: argparse.ArgumentParser):
     parser.add_argument('--aws-endpoint-url', help='AWS endpoint URL')
