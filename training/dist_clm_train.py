@@ -261,38 +261,23 @@ def train_loop(args, pipe, device, train_data_loader, test_data_loader):
                 if do_sync_before_save:
                     pipe.dp_optim.rollback_parameters()
 
-def calculate_training_steps(args, device, train_data_loader) -> int:
-
-    use_dp = (args.world_size != args.pipeline_group_size)
-    total_steps_sync = torch.zeros(1, dtype=torch.int64).to(device)
-
+def calculate_training_steps(args, train_data_loader) -> int:
     if args.total_steps is None and args.nepochs is None:
-        total_steps = len(train_data_loader)
-    elif args.total_steps is not None:
+        return len(train_data_loader)
+
+    if args.total_steps is not None:
         if args.nepochs is not None:
             print("WARNING: total_steps ({args.toal_steps}) supercedes nepochs ({args.nepochs}).")
-        total_steps = args.total_steps
-    elif train_data_loader is not None:
-        token_count = train_data_loader.dataset.get_dataset_token_count()
+        return args.total_steps
 
-        # Check the inputs to calculate the total steps
-        if args.batch_size is None or args.world_size is None or args.pipeline_group_size is None or token_count is None or args.seq_length is None:
-            print("Missing required arguments for calculating total steps based on epochs.")
-            sys.exit(1)
-        global_batch_size = int(args.batch_size * args.world_size / args.pipeline_group_size)
-        total_steps =  int((args.nepochs * token_count) / (global_batch_size * args.seq_length))
+    token_count = train_data_loader.dataset.get_dataset_token_count()
 
-        total_steps_sync.data[:] = total_steps
-
-    if use_dp:
-        get_data_parallel_comm().broadcast(total_steps_sync, 0)
-    get_pipeline_parallel_comm().broadcast(total_steps_sync, 0)
-    total_steps = total_steps_sync.item()
-
-    print(f"Rank {get_pipeline_parallel_rank()} calculated {total_steps} total steps.")
-
-    return total_steps
-
+    # Check the inputs to calculate the total steps
+    if args.batch_size is None or args.world_size is None or args.pipeline_group_size is None or token_count is None or args.seq_length is None:
+        print("Missing required arguments for calculating total steps based on epochs.")
+        sys.exit(1)
+    global_batch_size = int(args.batch_size * args.world_size / args.pipeline_group_size)
+    return int((args.nepochs * token_count) / (global_batch_size * args.seq_length))
 
 def main():
     parser = argparse.ArgumentParser(description='Gpipe-GPT')
@@ -395,10 +380,7 @@ def main():
     config.pad_token_id = tokenizer.pad_token_id
     print("token vocab size:", config.vocab_size)
     
-    if get_pipeline_parallel_rank() == 0 and dp_rank == 0:
-        train_data_loader = get_train_data_loader(args, tokenizer)
-    else:
-        train_data_loader = None
+    train_data_loader = get_train_data_loader(args, tokenizer)
         
     if args.evaluation_data is not None and dp_rank == 0:
         test_data_loader = get_eval_data_loader(args, tokenizer)
@@ -406,7 +388,7 @@ def main():
         test_data_loader = None
     
     # calculate total steps
-    args.total_steps = calculate_training_steps(args, device, train_data_loader)
+    args.total_steps = calculate_training_steps(args, train_data_loader)
     if args.checkpoint_steps == 0 and args.num_checkpoints > 0:
         args.checkpoint_steps = int(args.total_steps / args.num_checkpoints)
         if args.checkpoint_steps < 1:
