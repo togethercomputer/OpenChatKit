@@ -264,12 +264,13 @@ def calculate_training_steps(args, train_data_loader) -> int:
     steps_per_epoch = 0
     steps_per_checkpoint = 0
 
+    token_count = train_data_loader.dataset.get_dataset_token_count()
+
     # Check the inputs to calculate the total steps
     if args.batch_size is None or args.world_size is None or args.pipeline_group_size is None or token_count is None or args.seq_length is None:
         print("Missing required arguments for calculating total steps based on epochs.")
         sys.exit(1)
 
-    token_count = train_data_loader.dataset.get_dataset_token_count()
     global_batch_size = (args.batch_size * args.world_size + args.pipeline_group_size - 1) // args.pipeline_group_size
     tokens_per_batch = global_batch_size * args.seq_length
     steps_per_epoch = (token_count + tokens_per_batch - 1) // tokens_per_batch
