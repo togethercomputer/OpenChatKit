@@ -307,9 +307,9 @@ def calculate_training_steps(args, train_data_loader) -> int:
         steps_per_epoch = 1
 
     # Set the number of steps per epoch based on user input.
-    if args.checkpoint_steps is not None:
+    if args.checkpoint_steps is not None and args.checkpoint_steps > 0:
         steps_per_checkpoint = args.checkpoint_steps
-    elif args.num_checkpoints is not None:
+    elif args.num_checkpoints is not None and args.num_checkpoints > 0:
         steps_per_checkpoint = (total_steps + args.num_checkpoints - 1) // args.num_checkpoints
     else:
         steps_per_checkpoint = total_steps
