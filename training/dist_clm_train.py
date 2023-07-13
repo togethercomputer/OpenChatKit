@@ -279,8 +279,8 @@ def calculate_training_steps(args, train_data_loader) -> int:
 
     global_batch_size = int(args.batch_size * args.world_size / args.pipeline_group_size)
     total_steps = int((args.nepochs * token_count) / (global_batch_size * args.seq_length))
-    if total_steps < 1:
-        total_steps = 1
+    if total_steps < 10:
+        total_steps = 10
 
     return total_steps
 
