@@ -73,7 +73,7 @@ def test_loop(args, pipe, device, test_data_loader):
     
 
 
-def train_loop(args, pipe, device, train_data_loader, test_data_loader):
+def train_loop(args, pipe, device, train_data_loader, test_data_loader, steps_per_epoch):
     
     print('training starts......')
 
@@ -117,10 +117,6 @@ def train_loop(args, pipe, device, train_data_loader, test_data_loader):
                                        event_reporter = event_reporter,
                                        n_stages = args.pipeline_group_size)
 
-        epoch_steps = int(train_data_loader.dataset.get_dataset_example_count() / args.batch_size)
-        if epoch_steps < 1:
-            epoch_steps = 1
-            
         if event_reporter is not None:
 
             # Get the number of tokens in the dataset
@@ -162,7 +158,7 @@ def train_loop(args, pipe, device, train_data_loader, test_data_loader):
             labels = input_ids.clone()
             current_iter_time = pipe.sgd_iter(input_ids, labels, loss_func=gpt_loss_func)
 
-            if event_reporter is not None and pipe.global_step % epoch_steps == 0:
+            if event_reporter is not None and (pipe.global_step >= args.total_steps or pipe.global_step % steps_per_epoch == 0):
                 event_reporter.report(object=EventReporter.OBJECT_FINE_TUNE,
                                       message=f"Epoch completed, at step {pipe.global_step}",
                                       event_type=EventReporter.EVENT_TYPE_EPOCH_COMPLETE,
@@ -261,28 +257,71 @@ def train_loop(args, pipe, device, train_data_loader, test_data_loader):
                 if do_sync_before_save:
                     pipe.dp_optim.rollback_parameters()
 
+# Compute the total number of training steps, steps per epoch, and steps per
+# checkpoint
 def calculate_training_steps(args, train_data_loader) -> int:
-    if args.total_steps is None and args.nepochs is None:
-        return len(train_data_loader)
-
-    if args.total_steps is not None:
-        if args.nepochs is not None:
-            print("WARNING: total_steps ({args.toal_steps}) supercedes nepochs ({args.nepochs}).")
-        return args.total_steps
-
-    token_count = train_data_loader.dataset.get_dataset_token_count()
+    total_steps = 0
+    steps_per_epoch = 0
+    steps_per_checkpoint = 0
 
     # Check the inputs to calculate the total steps
     if args.batch_size is None or args.world_size is None or args.pipeline_group_size is None or token_count is None or args.seq_length is None:
         print("Missing required arguments for calculating total steps based on epochs.")
         sys.exit(1)
 
-    global_batch_size = int(args.batch_size * args.world_size / args.pipeline_group_size)
-    total_steps = int((args.nepochs * token_count) / (global_batch_size * args.seq_length))
+    token_count = train_data_loader.dataset.get_dataset_token_count()
+    global_batch_size = (args.batch_size * args.world_size + args.pipeline_group_size - 1) // args.pipeline_group_size
+    tokens_per_batch = global_batch_size * args.seq_length
+    steps_per_epoch = (token_count + tokens_per_batch - 1) // tokens_per_batch
+
+    if args.total_steps is not None:
+        if args.nepochs is not None:
+            print("WARNING: total_steps ({args.toal_steps}) supercedes nepochs ({args.nepochs}).")
+        total_steps = args.total_steps
+    elif args.nepochs is not None:
+        total_steps = steps_per_epoch * args.nepochs
+    else:
+        total_steps = len(train_data_loader)
+
+    # Set the minimum number of total steps
     if total_steps < 10:
         total_steps = 10
 
-    return total_steps
+    # Ensure that the steps per epoch are consistent with total steps
+    # Note: This does not strictly follow the definition of an epoch. It just
+    # approximately distributes the reporting of epochs over the total number of
+    # steps.
+    if args.nepochs is not None:
+        steps_per_epoch = (total_steps + args.nepochs - 1) // args.nepochs
+
+    # clamp steps_per_epoch to [1, total_steps]
+    if steps_per_epoch > total_steps:
+        steps_per_epoch = total_steps
+    if steps_per_epoch < 1:
+        steps_per_epoch = 1
+
+    # Set the number of steps per epoch based on user input.
+    if args.checkpoint_steps is not None:
+        steps_per_checkpoint = args.checkpoint_steps
+    elif args.nepochs is not None:
+        steps_per_checkpoint = (total_steps + args.nepochs - 1) // args.nepochs
+    else:
+        steps_per_checkpoint = total_steps
+    
+    # Clamp steps_per_checkpoint to [1, total_steps]
+    if steps_per_checkpoint > total_steps:
+        steps_per_checkpoint = total_steps
+    if steps_per_checkpoint < 1:
+        steps_per_checkpoint = 1
+
+    print(f"total_steps={total_steps}")
+    print(f"steps_per_epoch={steps_per_epoch}")
+    print(f"steps_per_checkpoint={steps_per_checkpoint}")
+
+    # Set the args base on what we computed above
+    args.total_steps = total_steps
+    args.checkpoint_steps = steps_per_checkpoint
+    return steps_per_epoch
 
 def main():
     parser = argparse.ArgumentParser(description='Gpipe-GPT')
@@ -393,13 +432,7 @@ def main():
         test_data_loader = None
     
     # calculate total steps
-    args.total_steps = calculate_training_steps(args, train_data_loader)
-    if args.checkpoint_steps == 0 and args.num_checkpoints > 0:
-        args.checkpoint_steps = int(args.total_steps / args.num_checkpoints)
-        if args.checkpoint_steps < 1:
-            args.checkpoint_steps = 1
-    print("Total steps:", args.total_steps)
-    print("Checkpoint steps:", args.checkpoint_steps)
+    steps_per_epoch = calculate_training_steps(args, train_data_loader)
     
     use_dp = (args.world_size != args.pipeline_group_size)
     if use_dp:
@@ -416,7 +449,7 @@ def main():
         pipe.optimizer.reload_model_params()
 
     if args.profiling == 'no-profiling':
-        train_loop(args, pipe, device, train_data_loader, test_data_loader)
+        train_loop(args, pipe, device, train_data_loader, test_data_loader, steps_per_epoch)
     else:
         prefix = './trace_json/gpt3_' + args.pp_mode
         if use_dp:
@@ -426,14 +459,14 @@ def main():
                      args.profiling + '_' + args.trace_postfix + '.json'
         if args.profiling == 'tidy_profiling':
             try:
-                train_loop(args, pipe, device, train_data_loader, test_data_loader)
+                train_loop(args, pipe, device, train_data_loader, test_data_loader, steps_per_epoch)
             except Exception as e:
                 raise e
                 print(get_pipeline_parallel_rank(), e)
             pipe.export_profiling_result(filename=trace_file)
         elif args.profiling == 'pytorch_profiling':
             with profiler.profile(profile_memory=True, use_cuda=args.use_cuda) as prof:
-                train_loop(args, pipe, device, train_data_loader, test_data_loader)
+                train_loop(args, pipe, device, train_data_loader, test_data_loader, steps_per_epoch)
             print(prof.key_averages().table())
             prof.export_chrome_trace(trace_file)
         else:
