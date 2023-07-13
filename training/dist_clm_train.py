@@ -393,6 +393,8 @@ def main():
         args.checkpoint_steps = int(args.total_steps / args.num_checkpoints)
         if args.checkpoint_steps < 1:
             args.checkpoint_steps = 1
+    print("Total steps:", args.total_steps)
+    print("Checkpoint steps:", args.checkpoint_steps)
     
     use_dp = (args.world_size != args.pipeline_group_size)
     if use_dp:
