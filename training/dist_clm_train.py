@@ -118,7 +118,7 @@ def train_loop(args, pipe, device, train_data_loader, test_data_loader):
                                        n_stages = args.pipeline_group_size)
 
         epoch_steps = int(train_data_loader.dataset.get_dataset_example_count() / args.batch_size)
-        if epoch_steps == 0:
+        if epoch_steps < 1:
             epoch_steps = 1
             
         if event_reporter is not None:
@@ -260,7 +260,29 @@ def train_loop(args, pipe, device, train_data_loader, test_data_loader):
                     save_checkpoint(pipe, args)
                 if do_sync_before_save:
                     pipe.dp_optim.rollback_parameters()
-        
+
+def calculate_training_steps(args, train_data_loader) -> int:
+    if args.total_steps is None and args.nepochs is None:
+        return len(train_data_loader)
+
+    if args.total_steps is not None:
+        if args.nepochs is not None:
+            print("WARNING: total_steps ({args.toal_steps}) supercedes nepochs ({args.nepochs}).")
+        return args.total_steps
+
+    token_count = train_data_loader.dataset.get_dataset_token_count()
+
+    # Check the inputs to calculate the total steps
+    if args.batch_size is None or args.world_size is None or args.pipeline_group_size is None or token_count is None or args.seq_length is None:
+        print("Missing required arguments for calculating total steps based on epochs.")
+        sys.exit(1)
+
+    global_batch_size = int(args.batch_size * args.world_size / args.pipeline_group_size)
+    total_steps = int((args.nepochs * token_count) / (global_batch_size * args.seq_length))
+    if total_steps < 10:
+        total_steps = 10
+
+    return total_steps
 
 def main():
     parser = argparse.ArgumentParser(description='Gpipe-GPT')
@@ -283,6 +305,7 @@ def main():
                         help='task name')
     parser.add_argument('--warmup-steps', type=int, default=0, help='-')
     parser.add_argument('--train-warmup-steps', type=int, default=0, help='-')
+    parser.add_argument('--nepochs', type=int, default=None, help='-')
     parser.add_argument('--total-steps', type=int, default=None, help='-')
     parser.add_argument('--load-pretrained-model', 
                         type=lambda x: x.lower()=='true', default=True, metavar='S',
@@ -306,6 +329,9 @@ def main():
     parser.add_argument('--checkpoint-steps', 
                         type=int, default=0, metavar='S',
                         help='every x steps, save checkpoint. (0 means do not save checkpoint)')
+    parser.add_argument('--num-checkpoints', 
+                        type=int, default=0, metavar='S',
+                        help='number of checkpoints to save')
     parser.add_argument('--net-interface', 
                         type=str, default='lo', metavar='S',
                         help='net_interface')
@@ -359,18 +385,21 @@ def main():
     config.pad_token_id = tokenizer.pad_token_id
     print("token vocab size:", config.vocab_size)
     
-    if get_pipeline_parallel_rank() == 0 and dp_rank == 0:
-        train_data_loader = get_train_data_loader(args, tokenizer)
-    else:
-        train_data_loader = None
+    train_data_loader = get_train_data_loader(args, tokenizer)
         
     if args.evaluation_data is not None and dp_rank == 0:
         test_data_loader = get_eval_data_loader(args, tokenizer)
     else:
         test_data_loader = None
-        
-    if args.total_steps is None:
-        args.total_steps = len(train_data_loader)
+    
+    # calculate total steps
+    args.total_steps = calculate_training_steps(args, train_data_loader)
+    if args.checkpoint_steps == 0 and args.num_checkpoints > 0:
+        args.checkpoint_steps = int(args.total_steps / args.num_checkpoints)
+        if args.checkpoint_steps < 1:
+            args.checkpoint_steps = 1
+    print("Total steps:", args.total_steps)
+    print("Checkpoint steps:", args.checkpoint_steps)
     
     use_dp = (args.world_size != args.pipeline_group_size)
     if use_dp:
