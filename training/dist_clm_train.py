@@ -108,6 +108,8 @@ def train_loop(args, pipe, device, train_data_loader, test_data_loader, steps_pe
 
     if get_pipeline_parallel_rank() == 0 and dp_rank == 0:
 
+        print(f"Training steps:  total_steps={args.total_steps},  steps_per_epoch={steps_per_epoch},  steps_per_checkpoint={args.checkpoint_steps}")
+
         upload_checkpoints_enabled = args.checkpoint_upload_prefix is not None 
         upload_manager = UploadManager(aws_endpoint_url = args.aws_endpoint_url,
                                        aws_access_key_id = args.aws_access_key_id,
@@ -260,11 +262,6 @@ def train_loop(args, pipe, device, train_data_loader, test_data_loader, steps_pe
 # Compute the total number of training steps, steps per epoch, and steps per
 # checkpoint
 def calculate_training_steps(args, train_data_loader) -> int:
-    print(f"args.total_steps={args.total_steps}")
-    print(f"args.nepochs={args.nepochs}")
-    print(f"args.checkpoint_steps={args.checkpoint_steps}")
-    print(f"args.num_checkpoints={args.num_checkpoints}")
-
     total_steps = 0
     steps_per_epoch = 0
     steps_per_checkpoint = 0
@@ -319,10 +316,6 @@ def calculate_training_steps(args, train_data_loader) -> int:
         steps_per_checkpoint = total_steps
     if steps_per_checkpoint < 1:
         steps_per_checkpoint = 1
-
-    print(f"total_steps={total_steps}")
-    print(f"steps_per_epoch={steps_per_epoch}")
-    print(f"steps_per_checkpoint={steps_per_checkpoint}")
 
     # Set the args base on what we computed above
     args.total_steps = total_steps
