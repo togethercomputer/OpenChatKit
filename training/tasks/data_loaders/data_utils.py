@@ -309,9 +309,6 @@ class StreamDatasetList(IterableDataset):
         for item in tokenized_datasets:
             self.token_count += len(item['input_ids'])
 
-        # clean up cache
-        raw_datasets.cleanup_cache_files()
-
         return self.token_count
 
     def get_dataset_example_count(self) -> int:
