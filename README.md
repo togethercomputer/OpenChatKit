@@ -13,6 +13,10 @@ In this repo, you'll find code for:
 - [Getting Started](#getting-started)
   * [Requirements](#requirements)
   * [Chatting with Pythia-Chat-Base-7B](#chatting-with-pythia-chat-base-7b)
+- [Fine-tuning Llama-2-7B-32K-beta](#fine-tuning-llama-2-7b-32k-beta)
+  * [Downloading and converting the base model](#downloading-and-converting-the-base-model)
+  * [Fine-tuning the model](#fine-tuning-the-model)
+  * [Converting trained weights to Hugging Face format](#converting-trained-weights-to-hugging-face-format)
 - [Reproducing Pythia-Chat-Base-7B](#reproducing-pythia-chat-base-7b)
   * [Downloading training data and the base model](#downloading-training-data-and-the-base-model)
   * [(Optional) 8bit Adam](#optional-8bit-adam)
@@ -103,6 +107,59 @@ The shell also supports additional commands to inspect hyperparamters, the full 
 > The `/quit` command exits the shell.
 
 Please see [the inference README](inference/README.md) for more details about arguments, running on multiple/specific GPUs, and running on consumer hardware.
+
+# Fine-tuning Llama-2-7B-32K-beta
+
+Llama-2-7B-32K-beta model can be fine-tuned using various datasets. In this tutorial, we will use the multi-document natural questions dataset and BookSum dataset.
+
+## Downloading and converting the base model
+
+To download model Llama-2-7B-32K-beta and prepare it for fine-tuning, run this command from the root of the repository.
+
+```shell
+python pretrained/Llama-2-7B-32K-beta/prepare.py
+```
+
+The weights for this model will be in the `pretrained/Llama-2-7B-32K-beta/togethercomputer_Llama-2-7B-32K-beta` directory.
+
+
+## Fine-tuning the model
+
+The `training/finetune_llama-2-7b-32k-mqa.sh` and `training/finetune_llama-2-7b-32k-booksum.sh` scripts configure and run the training loop.
+
+1. To fine-tune the multi-document natural questions dataset, run:
+   ```shell
+   bash training/finetune_llama-2-7b-32k-mqa.sh
+   ```
+
+2. To fine-tune the BookSum dataset, run:
+   ```shell
+   bash training/finetune_llama-2-7b-32k-booksum.sh
+   ```
+
+As the training loop runs, checkpoints are saved to the `model_ckpts` directory at the root of the repo.
+
+Please see [the training README](training/README.md) for more details about customizing the training run.
+
+## Converting trained weights to Hugging Face format
+
+Before you can use this model to perform inference, it must be converted to the Hugging Face format. Run this command from the root of the repo to do so.
+
+For example
+```shell
+mkdir huggingface_models \
+  && python tools/convert_to_hf_llama.py \
+       --config-name togethercomputer/Llama-2-7B-32K-beta \
+       --ckpt-path model_ckpts/llama-2-7b-32k-mqa/checkpoint_10 \
+       --save-path huggingface_models/llama-2-7b-32k-mqa \
+       --n-stages 4 \
+       --n-layer-per-stage 8 \
+       --fp16
+```
+where the `--fp16` flag will load and store models in fp16.
+
+Make sure to replace model_ckpts/llama-2-7b-32k-mqa/checkpoint_10` with the latest checkpoint in the `model_ckpts/llama-2-7b-32k-mqa` or `model_ckpts/llama-2-7b-32k-booksum` directory.
+
 
 # Reproducing Pythia-Chat-Base-7B
 
