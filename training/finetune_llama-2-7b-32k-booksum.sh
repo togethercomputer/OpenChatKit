@@ -7,7 +7,7 @@ export MODEL_NAME=llama-2-7b-32k-booksum
 
 export SHOW_DATA=1
 
-BASE_MODEL="${DIR}/../pretrained/LLaMA-2-7B-32KCTX/togethercomputer_Llama-2-7B-32KCtx-v0.1"
+BASE_MODEL="${DIR}/../pretrained/Llama-2-7B-32K-beta/togethercomputer_Llama-2-7B-32K-beta"
 
 TOTAL_STEPS=${FINETUNE_TOTAL_STEPS:-10}
 CHECKPOINT_STEPS=${FINETUNE_CHECKPOINT_STEPS:-10}

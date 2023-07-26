@@ -111,7 +111,7 @@ def load_decentralized_checkpoint(model, checkpoint_path, n_stages=2, n_layer_pe
 if __name__ == '__main__':
     
     parser = argparse.ArgumentParser(description='Convert HF checkpoints')
-    parser.add_argument('--config-name', type=str, default='togethercomputer/Llama-2-7B-32KCtx-v0.1',
+    parser.add_argument('--config-name', type=str, default='togethercomputer/Llama-2-7B-32K-beta',
                         help='config-name')
     parser.add_argument('--ckpt-path', type=str, default=None, 
                         help='ckpt-path')

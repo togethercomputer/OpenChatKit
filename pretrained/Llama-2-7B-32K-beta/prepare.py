@@ -8,7 +8,7 @@ USE_AUTH_TOKEN = False
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Convert HF checkpoints')
-    parser.add_argument('--model-name', type=str, default='togethercomputer/Llama-2-7B-32KCtx-v0.1', 
+    parser.add_argument('--model-name', type=str, default='togethercomputer/Llama-2-7B-32K-beta', 
                         help='model-name')
     parser.add_argument('--save-dir', type=str, default=DIR, 
                         help='model-name')
