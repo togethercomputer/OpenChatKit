@@ -359,7 +359,18 @@ def get_train_data_loader(args, tokenizer, num_workers=1, state_dict=None):
     print('data_utils: parse task_list')
     
     for task in task_list:
-        if ':' in task:
+        if task.startswith('http'):
+            # data from url has an addtional :
+            if len(task.split(':')) == 3:
+                prefix, task, prob = task.strip().split(':')
+                task = f"{prefix}:{task}"
+                prob = float(prob)
+            elif len(task.split(':')) == 2:
+                task = task.strip()
+                prob = 1.0
+            else:
+                raise Exception('Cannot parse task.')
+        elif ':' in task:
             task, prob = task.strip().split(':')
             prob = float(prob)
         else:

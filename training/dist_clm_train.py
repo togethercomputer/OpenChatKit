@@ -378,7 +378,7 @@ def main():
                         help='an uuid')
     
     # Add AWS arguments for uploading checkpoints to S3
-    parser.add_argument('--checkpoint-upload-prefix', required=True, help='S3 bucket name')
+    parser.add_argument('--checkpoint-upload-prefix', default=None, help='S3 bucket name')
     add_aws_arguments(parser)
 
     args = parser.parse_args()
@@ -417,6 +417,7 @@ def main():
     
     tokenizer = build_tokenizer(args)
     tokenizer.model_max_length = args.seq_length
+    config.max_position_embeddings = args.seq_length
     # config.vocab_size = tokenizer.vocab_size
     config.bos_token_id = tokenizer.bos_token_id
     config.eos_token_id = tokenizer.eos_token_id
