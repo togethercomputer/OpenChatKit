@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 
 from transformers import LlamaForCausalLM
-from transformers import LlamaConfig, LlamaTokenizer
+from transformers import AutoConfig, AutoTokenizer
 
 from transformers.modeling_utils import no_init_weights
 import os
@@ -54,7 +54,13 @@ def load_decentralized_checkpoint(model, checkpoint_path, n_stages=2, n_layer_pe
                 if len(_tmp) == 0:
                     break
                 # torch.save(_tmp, os.path.join(output_path, f'pytorch_{j}.pt'))
-                model.model.layers[j].load_state_dict(_tmp)
+                ret = model.model.layers[j].load_state_dict(_tmp, strict=False)
+                if len(ret.missing_keys):
+                    print('The following weight keys are missing:')
+                    print(ret.missing_keys)
+                if len(ret.unexpected_keys):
+                    print('The following weight keys are unexpected:')
+                    print(ret.unexpected_keys)
 
         elif i == n_stages - 1:
             for j in range(n_layer_per_stage):
@@ -64,7 +70,13 @@ def load_decentralized_checkpoint(model, checkpoint_path, n_stages=2, n_layer_pe
                 if len(_tmp) == 0:
                     break
                 # torch.save(_tmp, os.path.join(output_path, f'pytorch_{i*n_layer_per_stage + j}.pt'))
-                model.model.layers[i*n_layer_per_stage + j].load_state_dict(_tmp)
+                ret = model.model.layers[i*n_layer_per_stage + j].load_state_dict(_tmp, strict=False)
+                if len(ret.missing_keys):
+                    print('The following weight keys are missing:')
+                    print(ret.missing_keys)
+                if len(ret.unexpected_keys):
+                    print('The following weight keys are unexpected:')
+                    print(ret.unexpected_keys)
             else:
                 j += 1
 
@@ -85,7 +97,13 @@ def load_decentralized_checkpoint(model, checkpoint_path, n_stages=2, n_layer_pe
                 if len(_tmp) == 0:
                     break
                 # torch.save(_tmp, os.path.join(output_path, f'pytorch_{i*n_layer_per_stage + j}.pt'))
-                model.model.layers[i*n_layer_per_stage + j].load_state_dict(_tmp)
+                ret = model.model.layers[i*n_layer_per_stage + j].load_state_dict(_tmp, strict=False)
+                if len(ret.missing_keys):
+                    print('The following weight keys are missing:')
+                    print(ret.missing_keys)
+                if len(ret.unexpected_keys):
+                    print('The following weight keys are unexpected:')
+                    print(ret.unexpected_keys)
 
     return model
 
@@ -114,10 +132,10 @@ if __name__ == '__main__':
 
     # LlamaForCausalLM LlamaConfig LlamaTokenizer
     print('loading config...')
-    config = LlamaConfig.from_pretrained(args.config_name)
+    config = AutoConfig.from_pretrained(args.config_name)
     print('loaded config.')
     print('loading tokenizer...')
-    tokenizer = LlamaTokenizer.from_pretrained(args.config_name)
+    tokenizer = AutoTokenizer.from_pretrained(args.config_name)
     print('loaded tokenizer.')
     print('creating empty model...')
     model = create_emtpy_llama(config)
@@ -135,51 +153,3 @@ if __name__ == '__main__':
     print(f'saved HF model to `{args.save_path}`')
     config.save_pretrained(args.save_path)
     tokenizer.save_pretrained(args.save_path)
-
-
-
-
-if __name__ == '__main__':
-    
-    parser = argparse.ArgumentParser(description='Convert HF checkpoints')
-    parser.add_argument('--config-name', type=str, default='EleutherAI/gpt-neox-20b',
-                        help='config-name')
-    parser.add_argument('--ckpt-path', type=str, default=None, 
-                        help='ckpt-path')
-    parser.add_argument('--save-path', type=str, default=None, 
-                        help='save-path')
-    parser.add_argument('--n-stages', type=int, default=8, 
-                        help='pipeline group size')
-    parser.add_argument('--n-layer-per-stage', type=int, default=6, 
-                        help='n layers per GPU device')
-    parser.add_argument('--fp16', default=False, action='store_true')
-    args = parser.parse_args()
-    
-    assert args.ckpt_path is not None
-    assert args.save_path is not None
-    
-    os.makedirs(args.save_path, exist_ok=True)
-
-    print('loading config...')
-    config = AutoConfig.from_pretrained(args.config_name)
-    print('loaded config.')
-    print('loading tokenizer...')
-    tokenizer = AutoTokenizer.from_pretrained(args.config_name)
-    print('loaded tokenizer.')
-    print('creating empty model...')
-    model = create_empty_gptneox(config)
-    if args.fp16:
-        model = model.half()
-    print('created empty model.')
-    print('loading model ckpt...')
-    load_decentralized_checkpoint(
-        model, args.ckpt_path, n_stages=args.n_stages, n_layer_per_stage=args.n_layer_per_stage,
-    )
-    print('loaded model ckpt.')
-    
-    print('saving HF model...')
-    model.save_pretrained(args.save_path)
-    print(f'saved HF model to `{args.save_path}`')
-    config.save_pretrained(args.save_path)
-    tokenizer.save_pretrained(args.save_path)
-    
