@@ -13,7 +13,7 @@ TOTAL_STEPS=${FINETUNE_TOTAL_STEPS:-10}
 CHECKPOINT_STEPS=${FINETUNE_CHECKPOINT_STEPS:-10}
 CHECKPOINT_PATH=${FINETUNE_CHECKPOINT_PATH:-"${DIR}/../model_ckpts/${MODEL_NAME}"}
 
-DATASETS="https://huggingface.co/datasets/togethercomputer/Long-Data-Collections/resolve/main/data/natural_questions_10_200_docs.jsonl.zst:1"
+DATASETS="https://huggingface.co/datasets/togethercomputer/Long-Data-Collections/resolve/main/fine-tune/natural_questions_10_200_docs.jsonl.zst:1"
 
 ARGS="--model-name ${BASE_MODEL} \
 --tokenizer-name ${BASE_MODEL} \
