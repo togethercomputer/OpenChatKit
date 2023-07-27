@@ -29,3 +29,4 @@ dependencies:
       - transformers==4.31.0
       - wandb==0.15.5
       - zstandard==0.21.0
+      - sentencepiece
