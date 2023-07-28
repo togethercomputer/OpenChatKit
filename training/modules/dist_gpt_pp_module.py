@@ -31,6 +31,8 @@ class GPTStageBase(nn.Module):
                 from .hf_gptj_modules import GPTEmbeddings, GPTBlock, GPTLMHead
             elif args.model_type == "gptneox":
                 from .hf_gptneox_modules import GPTEmbeddings, GPTBlock, GPTLMHead
+            elif args.model_type == 'llama':
+                from .llama_modules import GPTEmbeddings, GPTBlock, GPTLMHead
             else:
                 raise Exception("unknown")
         else:
@@ -44,18 +46,30 @@ class GPTStageBase(nn.Module):
         layer = self._GPTEmbeddings(deepcopy(self.config))
         if self.load_pretrained_model:
             print('loading embs')
-            layer.load_state_dict(
-                torch.load(f'{self.model_name}/pytorch_embs.pt')
+            ret = layer.load_state_dict(
+                torch.load(f'{self.model_name}/pytorch_embs.pt'), strict=False
             )
+            if len(ret.missing_keys):
+                print('The following weight keys are missing:')
+                print(ret.missing_keys)
+            if len(ret.unexpected_keys):
+                print('The following weight keys are unexpected:')
+                print(ret.unexpected_keys)
         return layer
 
     def _create_last_layer(self):
         layer = self._GPTLMHead(deepcopy(self.config))
         if self.load_pretrained_model:
             print('loading lm_head')
-            layer.load_state_dict(
-                torch.load(f'{self.model_name}/pytorch_lm_head.pt')
+            ret = layer.load_state_dict(
+                torch.load(f'{self.model_name}/pytorch_lm_head.pt'), strict=False
             )
+            if len(ret.missing_keys):
+                print('The following weight keys are missing:')
+                print(ret.missing_keys)
+            if len(ret.unexpected_keys):
+                print('The following weight keys are unexpected:')
+                print(ret.unexpected_keys)
         return layer
 
     def _create_transformer_layer(self, layer_idx=0):
@@ -63,9 +77,15 @@ class GPTStageBase(nn.Module):
         layer = self._GPTBlock(config, layer_id=layer_idx) # TODO: checkpoint
         if self.load_pretrained_model:
             print(f'loading layer {layer_idx}')
-            layer.load_state_dict(
-                torch.load(f'{self.model_name}/pytorch_{layer_idx}.pt')
+            ret = layer.load_state_dict(
+                torch.load(f'{self.model_name}/pytorch_{layer_idx}.pt'), strict=False
             )
+            if len(ret.missing_keys):
+                print('The following weight keys are missing:')
+                print(ret.missing_keys)
+            if len(ret.unexpected_keys):
+                print('The following weight keys are unexpected:')
+                print(ret.unexpected_keys)
         return layer
     
 
