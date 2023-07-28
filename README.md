@@ -1,9 +1,10 @@
 # OpenChatKit
 
-OpenChatKit provides a powerful, open-source base to create both specialized and general purpose chatbots for various applications. The kit includes an instruction-tuned language models, a moderation model, and an extensible retrieval system for including up-to-date responses from custom repositories. OpenChatKit models were trained on the OIG-43M training dataset, which was a collaboration between [Together](https://www.together.xyz/), [LAION](https://laion.ai), and [Ontocord.ai](https://ontocord.ai). 
+OpenChatKit provides a powerful, open-source base to create both specialized and general purpose models for various applications. The kit includes an instruction-tuned language models, a moderation model, and an extensible retrieval system for including up-to-date responses from custom repositories. OpenChatKit models were trained on the OIG-43M training dataset, which was a collaboration between [Together](https://www.together.xyz/), [LAION](https://laion.ai), and [Ontocord.ai](https://ontocord.ai). 
 
 In this repo, you'll find code for:
 - Training GPT-NeoXT-Chat-Base-20B, a 20B parameter chat model (see [docs/GPT-NeoXT-Chat-Base-20B.md](docs/GPT-NeoXT-Chat-Base-20B.md))
+- Fine-tuning Llama-2-7B-32K-beta, a 7B parameter long context model
 - Training Pythia-Chat-Base-7B, a 7B parameter chat model
 - Testing inference using either of the chat models
 - Augmenting the model with additional context from a retrieval index
