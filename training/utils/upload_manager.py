@@ -188,17 +188,17 @@ def add_aws_arguments(parser: argparse.ArgumentParser):
     parser.add_argument('--aws-session-token', help='AWS session token')
     parser.add_argument('--aws-region', default='auto', help='AWS region (default: auto)')
 
-def aws_process_args(args: argparse.Namespace):
+def aws_process_args(args: argparse.Namespace, required: bool = False):
     if args.aws_endpoint_url is None:
         args.aws_endpoint_url = os.environ.get('AWS_ENDPOINT_URL', 'https://s3.amazonaws.com')
     if args.aws_access_key_id is None:
         args.aws_access_key_id = os.environ.get('AWS_ACCESS_KEY_ID')
-        if args.aws_access_key_id is None:
+        if required and args.aws_access_key_id is None:
             print("Error: AWS_ACCESS_KEY_ID is not set")
             sys.exit(1)
     if args.aws_secret_access_key is None:
         args.aws_secret_access_key = os.environ.get('AWS_SECRET_ACCESS_KEY')
-        if args.aws_secret_access_key is None:
+        if required and args.aws_secret_access_key is None:
             print("Error: AWS_SECRET_ACCESS_KEY is not set")
             sys.exit(1)
     if args.aws_session_token is None:
@@ -217,7 +217,7 @@ def main():
     parser.add_argument('directories', nargs='+', help='Directories to upload')
 
     args = parser.parse_args()
-    aws_process_args(args)
+    aws_process_args(args, required=True)
 
     event_reporter = None
     if args.event_host is not None and args.event_auth_token is not None and args.job_id is not None:
