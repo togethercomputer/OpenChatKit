@@ -13,7 +13,7 @@ from transformers.models.gpt_neox.modeling_gpt_neox import GPTNeoXMLP
 from transformers.models.gpt_neox.modeling_gpt_neox import GPTNeoXLayer as _GPTNeoXBlock
 from transformers.models.gpt_neox.modeling_gpt_neox import GPTNeoXModel as _GPTNeoXModel
 from transformers.models.gpt_neox.configuration_gpt_neox import GPTNeoXConfig as GPTConfig
-from transformers.models.gpt_neox.modeling_gpt_neox import RotaryEmbedding
+from transformers.models.gpt_neox.modeling_gpt_neox import GPTNeoXRotaryEmbedding
 
 
 try:
@@ -111,7 +111,7 @@ class GPTNeoXAttention(_GPTNeoXAttention):
             ),
         )
         self.register_buffer("masked_bias", torch.tensor(-1e9))
-        self.rotary_emb = RotaryEmbedding(
+        self.rotary_emb = GPTNeoXRotaryEmbedding(
             self.rotary_ndims, config.max_position_embeddings, base=config.rotary_emb_base
         )
         self.register_buffer(
