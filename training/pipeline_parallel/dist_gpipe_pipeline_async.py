@@ -200,6 +200,7 @@ class GpipeAsync:
 
         if self.use_fp16:
             self.model.half()
+        self.model.to(device)
 
         if do_train:
             if self.use_fp16:

@@ -121,7 +121,7 @@ class GPTStageFull(GPTStageBase):
             pass
         else:
             module_list.append(self._create_last_layer())
-        self.model = nn.Sequential(*module_list).to(device)
+        self.model = nn.Sequential(*module_list)
 
     def forward(self, x, **kargs):
         for module in self.model:
@@ -136,7 +136,7 @@ class GPTStageFirst(GPTStageBase):
         module_list = [self._create_first_layer()]
         for layer_idx in range(self._layer_begin, self._layer_end):
             module_list.append(self._create_transformer_layer(layer_idx=layer_idx))
-        self.model = nn.Sequential(*module_list).to(device)
+        self.model = nn.Sequential(*module_list)
 
     def forward(self, x, **kargs):
         for module in self.model:
@@ -153,7 +153,7 @@ class GPTStageMiddle(GPTStageBase):
         module_list = []
         for layer_idx in range(self._layer_begin, self._layer_end):
             module_list.append(self._create_transformer_layer(layer_idx=layer_idx))
-        self.model = nn.Sequential(*module_list).to(device)
+        self.model = nn.Sequential(*module_list)
 
     def forward(self, x, **kargs):
         for module in self.model:
@@ -176,7 +176,7 @@ class GPTStageLast(GPTStageBase):
         else:
             module_list.append(self._create_last_layer())
         
-        self.model = nn.Sequential(*module_list).to(device)
+        self.model = nn.Sequential(*module_list)
         
         # self.upscale_last = nn.Linear(args.embedding_dim, 9216).to(device)
         

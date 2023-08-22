@@ -230,58 +230,10 @@ class RotaryEmbedding(torch.nn.Module):
 
 
 try:
-    from flash_attn.flash_attn_interface import flash_attn_qkvpacked_func
+    from flash_attn.flash_attn_interface import flash_attn_qkvpacked_func, flash_attn_kvpacked_func
 
     flash_attn_v2_installed = True
     print(">>>>> using flash attention v2")
-
-    class FlashAttentionV2(nn.Module):
-        """Implement the scaled dot product attention with softmax.
-        Arguments
-        ---------
-            softmax_scale: The temperature to use for the softmax attention.
-                          (default: 1/sqrt(d_keys) where d_keys is computed at
-                          runtime)
-            attention_dropout: The dropout rate to apply to the attention
-                               (default: 0.0)
-        """
-
-        def __init__(self, softmax_scale=None, attention_dropout=0.0):
-            super().__init__()
-            self.softmax_scale = softmax_scale
-            self.dropout_p = attention_dropout
-
-        def forward(
-            self,
-            qkv,
-            key_padding_mask=None,
-            causal=False,
-            cu_seqlens=None,
-            max_s=None,
-            need_weights=False,
-        ):
-            """Implements the multihead softmax attention.
-            Arguments
-            ---------
-                qkv: The tensor containing the query, key, and value. (B, S, 3, H, D) if key_padding_mask is None
-                    if unpadded: (nnz, 3, h, d)
-                key_padding_mask: a bool tensor of shape (B, S)
-            """
-            assert not need_weights
-            assert qkv.dtype in [torch.float16, torch.bfloat16]
-            assert qkv.is_cuda
-            assert key_padding_mask is None
-            assert cu_seqlens is None
-            assert max_s is None
-
-            output = flash_attn_qkvpacked_func(
-                qkv,
-                self.dropout_p if self.training else 0.0,
-                softmax_scale=self.softmax_scale,
-                causal=causal,
-            )
-
-            return output, None
 
 except ImportError:
     flash_attn_v2_installed = False
@@ -441,23 +393,24 @@ class LlamaLoraQV(nn.Module):
     def __init__(self, config):
         super().__init__()
         self.hidden_size = config.hidden_size
+        self.num_heads = config.num_attention_heads
+        self.num_kv_heads = config.num_key_value_heads
+        self.head_dim = self.hidden_size // self.num_heads
+        
         self.lora_alpha = getattr(config, 'lora_alpha', 8)
         self.lora_r = getattr(config, 'lora_r', 8)
         self.lora_A = nn.Linear(self.hidden_size, self.lora_r, bias=None)
-        self.lora_B = nn.Linear(self.lora_r, self.hidden_size * 2, bias=None)
+        self.lora_B_Q = nn.Linear(self.lora_r, self.num_heads * self.head_dim, bias=None)
+        self.lora_B_V = nn.Linear(self.lora_r, self.num_kv_heads * self.head_dim, bias=None)
         nn.init.kaiming_uniform_(self.lora_A.weight, a=math.sqrt(5))
-        self.lora_B.weight.data[:] = 0.0
-
+        self.lora_B_Q.weight.data[:] = 0.0
+        self.lora_B_V.weight.data[:] = 0.0
+        
     def forward(self, x):
         x = self.lora_A(x)
-        x = self.lora_B(x)
-        return x[...,:self.hidden_size], x[...,self.hidden_size:]
-
-    def unpack_lora_qv(self):
-        lora_Q = self.lora_B[:self.hidden_size].matmul(self.lora_A.weight)
-        lora_V = self.lora_B[self.hidden_size:].matmul(self.lora_A.weight)
-        return lora_Q, lora_V
-
+        q = self.lora_B_Q(x)
+        v = self.lora_B_V(x)
+        return q, v
 
 class LlamaAttention(nn.Module):
     """Multi-headed attention from 'Attention Is All You Need' paper"""
@@ -469,7 +422,7 @@ class LlamaAttention(nn.Module):
         super().__init__()
         self.hidden_size = config.hidden_size
         self.num_heads = config.num_attention_heads
-        self.num_kv_heads = config.num_attention_heads
+        self.num_kv_heads = config.num_key_value_heads
         self.head_dim = self.hidden_size // self.num_heads
         max_positions = config.max_position_embeddings
         self.max_positions = max_positions
@@ -521,11 +474,6 @@ class LlamaAttention(nn.Module):
             scaling_factor=scaling_factor,
         )
 
-        if flash_attn_v2_installed:
-            self.flash_attn = FlashAttentionV2(
-                softmax_scale=1.0 / self.norm_factor, attention_dropout=0
-            )
-
     def _shape(self, tensor: torch.Tensor, seq_len: int, bsz: int):
         return (
             tensor.view(bsz, seq_len, self.num_heads, self.head_dim)
@@ -549,24 +497,26 @@ class LlamaAttention(nn.Module):
             bsz, q_len, self.num_heads, self.head_dim
         )
         key_states = self.k_proj(hidden_states).view(
-            bsz, q_len, self.num_heads, self.head_dim
+            bsz, q_len, self.num_kv_heads, self.head_dim
         )
         value_states = (self.v_proj(hidden_states) + lora_v).view(
-            bsz, q_len, self.num_heads, self.head_dim
+            bsz, q_len, self.num_kv_heads, self.head_dim
         )
 
-        qkv = torch.stack([query_states, key_states, value_states], dim=2)
-        qkv = self.rotary_emb(qkv)
+        q = query_states
+        kv = torch.stack([key_states, value_states], dim=2)
+        q, kv = self.rotary_emb(q, kv)
 
         if flash_attn_v2_installed:
-            attn_output, _ = self.flash_attn(qkv, causal=True)
+            attn_output = flash_attn_kvpacked_func(
+                q, kv, 0.0,
+                causal=True,
+            )
         elif xops_installed:
             q, k, v = qkv.unbind(2)
             attn_output = xops.memory_efficient_attention(
                 q, k, v, attn_bias=xops.LowerTriangularMask()
             )
-        elif flash_attn_installed:
-            attn_output, _ = self.flash_attn(qkv, causal=True)
         else:
             raise Exception("Flash Attention not found.")
 
