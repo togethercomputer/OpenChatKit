@@ -31,6 +31,30 @@ def create_emtpy_llama(config):
 
     return model
 
+def merge_lora_weights(_tmp):
+    to_pop = []
+    for k in _tmp:
+        if 'lora_qv_proj.lora_A' in k:
+            print('merging lora weights...')
+            src_A_k = k
+            src_B_k = k.replace('lora_A', 'lora_B')
+            tgt_Q_k = k.replace('lora_qv_proj.lora_A', 'q_proj')
+            tgt_V_k = k.replace('lora_qv_proj.lora_A', 'v_proj')
+
+            src_B_Q, src_B_V = _tmp[src_B_k].chunk(2, dim=0)
+            lora_Q = src_B_Q.float().matmul(_tmp[src_A_k].float())
+            lora_V = src_B_V.float().matmul(_tmp[src_A_k].float())
+                        
+            _tmp[tgt_Q_k].data += lora_Q
+            _tmp[tgt_V_k].data += lora_V
+
+            to_pop.append(src_A_k)
+            to_pop.append(src_B_k)
+    for k in to_pop:
+        _tmp.pop(k)
+    # do nothing if there is no lora weight.
+    return _tmp
+    
 def load_decentralized_checkpoint(model, checkpoint_path, n_stages=2, n_layer_per_stage=16, ):
     input_path = checkpoint_path
 
@@ -53,6 +77,7 @@ def load_decentralized_checkpoint(model, checkpoint_path, n_stages=2, n_layer_pe
                 _tmp = {k[len(f"{j+1}."):]:v for k,v in checkpoint.items() if k.startswith(f"{j+1}.")}
                 if len(_tmp) == 0:
                     break
+                _tmp = merge_lora_weights(_tmp)
                 # torch.save(_tmp, os.path.join(output_path, f'pytorch_{j}.pt'))
                 ret = model.model.layers[j].load_state_dict(_tmp, strict=False)
                 if len(ret.missing_keys):
@@ -69,6 +94,7 @@ def load_decentralized_checkpoint(model, checkpoint_path, n_stages=2, n_layer_pe
                 _tmp = {k[len(f"{j}."):]:v for k,v in checkpoint.items() if k.startswith(f"{j}.")}
                 if len(_tmp) == 0:
                     break
+                _tmp = merge_lora_weights(_tmp)
                 # torch.save(_tmp, os.path.join(output_path, f'pytorch_{i*n_layer_per_stage + j}.pt'))
                 ret = model.model.layers[i*n_layer_per_stage + j].load_state_dict(_tmp, strict=False)
                 if len(ret.missing_keys):
@@ -83,6 +109,7 @@ def load_decentralized_checkpoint(model, checkpoint_path, n_stages=2, n_layer_pe
             _tmp = {k[len(f"{j}."):]:v for k,v in checkpoint.items() if k.startswith(f"{j}.")}
             if len(_tmp) == 0:
                 break
+            _tmp = merge_lora_weights(_tmp)
             # torch.save(_tmp, os.path.join(output_path, f'pytorch_lm_head.pt'))
             model.model.norm.weight.data[:] = _tmp['norm.weight']
             if 'norm.bias' in _tmp:
