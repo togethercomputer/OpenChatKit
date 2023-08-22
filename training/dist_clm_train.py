@@ -332,6 +332,7 @@ def main():
     add_mixed_precision_arguments(parser)
     add_parallel_schema_arguments(parser)
     add_entry_reporter_arguments(parser)
+    add_lora_arguments(parser)
     parser.add_argument('--model-name', type=str, default='gpt2', metavar='S',
                         help='model name or path')
     parser.add_argument('--tokenizer-name', type=str, default='gpt2', metavar='S',
@@ -422,6 +423,9 @@ def main():
     config.bos_token_id = tokenizer.bos_token_id
     config.eos_token_id = tokenizer.eos_token_id
     config.pad_token_id = tokenizer.pad_token_id
+    if 'lora' in args.model_type:
+        config.lora_alpha = args.lora_alpha
+        config.lora_r = args.lora_r
     print("token vocab size:", config.vocab_size)
     
     train_data_loader = get_train_data_loader(args, tokenizer)

@@ -85,7 +85,11 @@ def add_mixed_precision_arguments(parser):
     parser.add_argument('--use-offload', action='store_true',
                         help='Offload optim states to CPU')
     
-
+def add_lora_arguments(parser):
+    parser.add_argument('--lora-alpha', default=8, type=int,
+                        help='lora alpha')
+    parser.add_argument('--lora-r', default=8, type=int,
+                        help='lora r')
 
 def add_parallel_schema_arguments(parser):
     parser.add_argument('--pp-mode', type=str, default='gpipe', metavar='S',

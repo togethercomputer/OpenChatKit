@@ -19,7 +19,8 @@ class GPTStageBase(nn.Module):
         self._layer_end = min(self._layer_begin + args.num_layers, args.max_layers)
         
         self._task_type = getattr(args, 'task_type', 'language_model')
-        
+
+        self.use_lora = 'lora' in args.model_type
         self.load_pretrained_model = args.load_pretrained_model
         self.model_name = args.model_name
         self.config = config
@@ -33,6 +34,8 @@ class GPTStageBase(nn.Module):
                 from .hf_gptneox_modules import GPTEmbeddings, GPTBlock, GPTLMHead
             elif args.model_type == 'llama':
                 from .llama_modules import GPTEmbeddings, GPTBlock, GPTLMHead
+            elif args.model_type == 'llama_lora':
+                from .llama_lora_modules import GPTEmbeddings, GPTBlock, GPTLMHead
             else:
                 raise Exception("unknown")
         else:
@@ -55,6 +58,12 @@ class GPTStageBase(nn.Module):
             if len(ret.unexpected_keys):
                 print('The following weight keys are unexpected:')
                 print(ret.unexpected_keys)
+        if self.use_lora:
+            for n, p in layer.named_parameters():
+                if 'lora' in n:
+                    p.requires_grad_(True)
+                else:
+                    p.requires_grad_(False)
         return layer
 
     def _create_last_layer(self):
@@ -70,6 +79,12 @@ class GPTStageBase(nn.Module):
             if len(ret.unexpected_keys):
                 print('The following weight keys are unexpected:')
                 print(ret.unexpected_keys)
+        if self.use_lora:
+            for n, p in layer.named_parameters():
+                if 'lora' in n:
+                    p.requires_grad_(True)
+                else:
+                    p.requires_grad_(False)
         return layer
 
     def _create_transformer_layer(self, layer_idx=0):
@@ -86,6 +101,12 @@ class GPTStageBase(nn.Module):
             if len(ret.unexpected_keys):
                 print('The following weight keys are unexpected:')
                 print(ret.unexpected_keys)
+        if self.use_lora:
+            for n, p in layer.named_parameters():
+                if 'lora' in n:
+                    p.requires_grad_(True)
+                else:
+                    p.requires_grad_(False)
         return layer
     
 
