@@ -1,6 +1,6 @@
 # OpenChatKit Training
 
-This directory contains code for training a chat model using OpenChatKit. The main training script is `finetune_GPT-NeoXT-Chat-Base-20B.sh`. 
+This directory contains code for training a chat model using OpenChatKit. The main training script is `finetune_GPT-NeoXT-Chat-Base-20B.sh`.
 
 To customize training, make a copy of the script and modify the arguments.
 
@@ -26,11 +26,11 @@ The following arguments should be carefully set:
 - `--net-interface`: Network interface. Should be consistent with `GLOO_SOCKET_IFNAME` and `NCCL_SOCKET_IFNAME`.
 
 The following arguments can be tuned / changed:
-- `--train-log-backend `: How to log the training info. {print, loguru, wandb}. 
+- `--train-log-backend `: How to log the training info. {print, loguru, wandb}.
 - `--optimizer`: Optimizer type. {adam, 8bit-adam} (8bit-adam requires `pip install bitsandbytes`)
 - `--load-pretrained-model`: Whether to load model weights. Usually `true`.
-- `--task-name`: The task name or the path of a `jsonl` file. For multi-task training separate task names by `,`. 
-   There is an optional sampling weight after each task name, separated by `:` (default is 1.0). Sampling weights will be normalized. 
+- `--task-name`: The task name or the path of a `jsonl` file. For multi-task training separate task names by `,`.
+   There is an optional sampling weight after each task name, separated by `:` (default is 1.0). Sampling weights will be normalized.
    E.g. it should be like `--task-name cot:0.1,/path_task0.jsonl:1.0,/path_task0.jsonl:1.0,/path_task0.jsonl:1.0`.
    The number after the colon indicates the sampling weight for the task during training. For example, `cot:0.1` means the `cot` task will be sampled with a weight of 0.1.
 - `--checkpoint-path`: Path to save fine-tuned checkpoints.
