@@ -48,3 +48,5 @@ The following arguments usually do not change:
 - `--fp16`: Flag to enable FP16 mixed precision training. Should always adding it for the current impl.
 - `--pp-mode`: always `gpipe`
 - `--profiling`: {no-profiling, tidy_profiling}. `tidy_profiling` will generate profile jsons.
+
+If you have any questions or need further assistance, please refer to the [OpenDataHub](https://github.com/togethercomputer/OpenDataHub) repository or contact us through our [website](https://www.together.ai/contact).
