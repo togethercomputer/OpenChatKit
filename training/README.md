@@ -54,4 +54,4 @@ The following arguments usually do not change:
 
 To add your own data to the training process, you should create a `jsonl` file where each line is a JSON object representing a single training example. Once you have your `jsonl` file, you can include it in the `--task-name` argument with an appropriate sampling weight. For instance, if your file is located at `/path_to_your_data/your_data.jsonl` and you wish to give it a sampling weight of 0.5, you would add `/path_to_your_data/your_data.jsonl:0.5` to the `--task-name` argument.
 
-If you have any questions or need further assistance, please refer to the [OpenDataHub](https://github.com/togethercomputer/OpenDataHub) repository or contact us through our [website](https://www.together.xyz/contact).
+If you have any questions or need further assistance, please refer to the [OpenDataHub](https://github.com/togethercomputer/OpenDataHub) repository or contact us through our [website](https://www.together.ai/contact).
