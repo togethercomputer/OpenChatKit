@@ -1,6 +1,6 @@
 # OpenChatKit Training
 
-This directory contains code for training a chat model using OpenChatKit. The main training script is `finetune_GPT-NeoXT-Chat-Base-20B.sh`. 
+This directory contains code for training a chat model using OpenChatKit. The main training script is `finetune_GPT-NeoXT-Chat-Base-20B.sh`.
 
 To customize training, make a copy of the script and modify the arguments.
 
@@ -26,12 +26,13 @@ The following arguments should be carefully set:
 - `--net-interface`: Network interface. Should be consistent with `GLOO_SOCKET_IFNAME` and `NCCL_SOCKET_IFNAME`.
 
 The following arguments can be tuned / changed:
-- `--train-log-backend `: How to log the training info. {print, loguru, wandb}. 
+- `--train-log-backend `: How to log the training info. {print, loguru, wandb}.
 - `--optimizer`: Optimizer type. {adam, 8bit-adam} (8bit-adam requires `pip install bitsandbytes`)
 - `--load-pretrained-model`: Whether to load model weights. Usually `true`.
-- `--task-name`: The task name or the path of a `jsonl` file. For multi-task training separate task names by `,`. 
-   There is an optional sampling weight after each task name, separated by `:` (default is 1.0). Sampling weights will be normalized. 
+- `--task-name`: The task name or the path of a `jsonl` file. For multi-task training separate task names by `,`.
+   There is an optional sampling weight after each task name, separated by `:` (default is 1.0). Sampling weights will be normalized.
    E.g. it should be like `--task-name cot:0.1,/path_task0.jsonl:1.0,/path_task0.jsonl:1.0,/path_task0.jsonl:1.0`.
+   The number after the colon indicates the sampling weight for the task during training. For example, `cot:0.1` means the `cot` task will be sampled with a weight of 0.1.
 - `--checkpoint-path`: Path to save fine-tuned checkpoints.
 - `--checkpoint-steps`: Save ckpt every `checkpoint-steps`.
 - `--total-steps`: Total number of steps for training. (This counts all `gradient-accumulate-step`s.)
@@ -48,3 +49,9 @@ The following arguments usually do not change:
 - `--fp16`: Flag to enable FP16 mixed precision training. Should always adding it for the current impl.
 - `--pp-mode`: always `gpipe`
 - `--profiling`: {no-profiling, tidy_profiling}. `tidy_profiling` will generate profile jsons.
+
+## Adding Your Own Data to the DATASETS
+
+To add your own data to the training process, you should create a `jsonl` file where each line is a JSON object representing a single training example. Once you have your `jsonl` file, you can include it in the `--task-name` argument with an appropriate sampling weight. For instance, if your file is located at `/path_to_your_data/your_data.jsonl` and you wish to give it a sampling weight of 0.5, you would add `/path_to_your_data/your_data.jsonl:0.5` to the `--task-name` argument.
+
+If you have any questions or need further assistance, please refer to the [OpenDataHub](https://github.com/togethercomputer/OpenDataHub) repository or contact us through our [website](https://www.together.ai/contact).
